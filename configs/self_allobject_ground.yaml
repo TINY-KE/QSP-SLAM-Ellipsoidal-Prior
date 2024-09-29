@@ -1,0 +1,308 @@
+%YAML:1.0
+
+CreateSingleObject: 0
+MinimumMatchToAssociate: 10
+Tracking.ShowEllipsoldProcess: 0
+LocalMapping.ShowEllipsoldProcess: 0
+LocalMapping.KeepRawPose: 0
+Tracking.AddSuffixToPcd: 0
+Tracking.AssociateObjectWithEllipsold: 1
+Tracking.AssociateDebug: 0
+Tracking.AddDepthPcdToMapObject: 1
+Tracking.UseDepthPcdToReconstruct: 1
+
+LocalMapping.MinValidPoints: 50
+LocalMapping.MinValidRays: 1
+
+Tracking.AssociateIoUThresold: 0.52
+
+Tracking.MinimumPtNumToJudgeGood: 5  # default 20
+
+LocalMapping.DistFiltParam: 0.4
+
+#--------------------------------------------------------------------------------------------
+# yolo
+#         "person人类",  //0
+#        "bicycle自行车", "car汽车", "motorcycle", "airplane", "bus",   //1
+#        "train", "truck", "boat", "traffic light",   "fire hydrant", //6
+#        "stop sign停止标", "parking meter", "bench", "bird", "cat", //11
+#        "dog", "horse", "sheep", "cow",  "elephant", //16
+#        "bear", "zebra", "giraffe", "backpack背包", "umbrella雨伞", //21
+#        "handbag手提包", "tie领带", "suitcase手提箱", "frisbee",  "skis", //26
+#        "snowboard", "sports ball", "kite", "baseball bat", "baseball glove", //31
+#        "skateboard", "surfboard",  "tennis racket", "bottle瓶子", "wine glass酒杯", //36
+#        "cup杯子", "fork", "knife", "spoon", "bowl碗", //41
+#        "banana香蕉", "apple苹果",   "sandwich三明治", "orange橙子", "broccoli", //46
+#        "carrot", "hot dog热狗", "pizza", "donut", "cake蛋糕", //51
+#        "chair椅子", "couch沙发",  "potted plant盆栽", "bed床", "dining table餐桌",//56
+#        "toilet", "tv电视", "laptop笔记本电脑", "mouse鼠标", "remote遥控器", //61
+#        "keyboard键盘", "cell phone手机",  "microwave微波炉", "oven烤箱", "toaster烤面包机", //66
+#        "sink水槽", "refrigerator冰箱", "book书", "clock钟", "vase花瓶", //71
+#        "scissors", "teddy bear泰迪熊",  "hair drier", "toothbrush"};//76
+#--------------------------------------------------------------------------------------------
+#yolo_class: [24, 28, 39, 56, 57, 58, 59, 60, 62, 63, 66, 67, 73, 72, 11]
+#yolo_class: [24, 28, 39, 56, 57, 58, 59, 60, 62, 63, 66, 67, 73, 72, 11]
+#yolo_class: [77]
+#77,  #泰迪熊
+
+#73,  #书
+#56,  #椅子
+#39,  #瓶子
+#63,  #笔记本电脑
+#75,  #花瓶
+#66,  #键盘
+#41   #杯子
+
+# keyboard, laptop, bottle, bowl, 
+
+# yolo_class: [77, 73, 39, 63, 75, 66, 41, 64]   #先去掉笔记本电脑 63
+
+# On table: laptop-63, book-73, vase-75, bottle-39, keyboard-66, cup-41
+# YoloClasses: [63, 73, 75, 39, 66, 41]
+# # 是否能读字符串列表
+
+# DecoderPaths: ["weights/deepsdf/laptops_64", 
+#                "weights/deepsdf/books_64_c",
+#                "weights/deepsdf/vases_64_c",
+#                "weights/deepsdf/bottles_64",
+#                "weights/deepsdf/keyboards_64",
+#                "weights/deepsdf/cups_64_c"]
+
+
+# On ground: chair-56, couch-57, dining table-60, bed-59, bookshelf-
+
+YoloClasses: [56, 57, 60, 59]
+# 是否能读字符串列表
+
+DecoderPaths: ["weights/deepsdf/chairs_64", 
+               "weights/deepsdf/sofas_64",
+               "weights/deepsdf/tables_64",
+               "weights/deepsdf/beds_64"]
+
+
+# [Dataset Path]
+Dataset.Type: "Redwood"
+Dataset.Path.Root: "/media/robotlab/新加卷/ubuntu22/QSP-SLAM-all/MySimDataset/GroundObjects"
+Dataset.Path.Map: "./dataset.pcd"
+
+
+frame_by_frame: 1  # 1: True, 0: False
+Tracking.frame_by_frame: 1  # 1: True, 0: False
+
+System.mode: RGBD
+System.output: KeyFrameTrajectoryRGBD.txt
+
+# System.mode: MONOCULAR
+# System.output: KeyFrameTrajectoryMONO.txt
+
+System.LocalMappingInSameThread: 1
+
+#---------------------------
+# Camera Parameters. 
+#---------------------------
+
+# Camera calibration and distortion parameters (OpenCV)
+Camera.fx: 554.254691191187
+Camera.fy: 554.254691191187
+Camera.cx: 320.5
+Camera.cy: 240.5
+
+Camera.k1: 0.0
+Camera.k2: 0.0
+Camera.p1: 0.0
+Camera.p2: 0.0
+
+Camera.width: 640
+Camera.height: 480
+
+# Camera frames per second
+Camera.fps: 30.0
+
+# IR projector baseline times fx (aprox.)
+Camera.bf: 40.0
+
+# Color order of the images (0: BGR, 1: RGB. It is ignored if images are grayscale)
+Camera.RGB: 1
+
+# Close/Far threshold. Baseline times.
+# ThDepth: 40.0
+ThDepth: 40.0
+
+# Deptmap values factor
+# DepthMapFactor: 5000.0
+
+# DepthMapFactor: 1250
+DepthMapFactor: 5000
+
+Camera.scale: 5000
+
+# DepthMapFactor: 1
+# Camera.scale: 1
+
+#--------------------------------------------------------------------------------------------
+# Parameters used for Object SLAM
+#--------------------------------------------------------------------------------------------
+# Config path for Python detectors
+DetectorConfigPath: configs/config_self_allobject_ground.json
+Objects.maskErrosion: 5
+
+
+System.UseEllipsoldPoseForDSP.Open: 1
+Running.skip_num: 2
+Running.total_ratio: 1.0
+
+flip_sample_num: 4
+
+# [From EllipsoldSLAM]
+
+# -----------------------------
+#   Monocular Infer
+# -----------------------------
+MonocularInfer.Init.Dis: 5
+
+# -----------------------------
+#   Semantic  Prior
+# -----------------------------
+#
+# System.MonocularInfer.Open: 1
+
+System.MonocularInfer.Open: 0
+Dataset.Path.PriTable: "./config/pritable.txt"
+
+SemanticPrior.PriorD: 1
+SemanticPrior.PriorE: 1
+# Prior weight
+SemanticPrior.Weight: 1
+# Ground Plane Contrain weight
+SemanticPrior.GroundWeight: 2
+
+# deg
+Optimizer.Edges.3DConstrain.PlaneAngle.Sigma: 100
+EllipsoidExtractor.SupportingPlaneFilter.DisThresh: 0.002
+
+# 10
+Dataset.Jumpframe: 5
+
+# Use gt
+Dataset.UseGroundtruth: 1
+
+# ------------------------------
+#  Probabilistic Data Association
+# ------------------------------
+# 
+DataAssociation.DPAlpha: 0.1
+DataAssociation.PlaneError.DisSigma: 0.5
+
+# ------------------------------------
+#  单帧椭球体估计： Single-frame ellipsoid estimation
+# ------------------------------------
+# Pointcloud segmentation parameters
+EllipsoidExtraction.Euclidean.ClusterTolerance: 0.1
+EllipsoidExtraction.Euclidean.MinClusterSize: 5
+EllipsoidExtraction.Euclidean.CenterDis: 0.5
+
+EllipsoidExtractor.Rotation.NormalVoter.KSearchNum: 35
+EllipsoidExtractor.MinNeighborsInRadius: 40
+EllipsoidExtractor.StatisticalOutlierRemoval.MeanK: 50
+
+# 0: Fix camera poses in optimization, 1: oppesite
+Optimizer.SLAM.mode: 0
+
+# weights of 3d, 2d edges in optimization
+Optimizer.Edges.3DEllipsoid.Scale: 0.1
+Optimizer.Edges.2D.Scale: 0.1
+Optimizer.PartialObservation.Open: 1
+
+Optimizer.NonparametricDA.Num: 1
+Optimizer.Optimize.Num: 5
+# ------------------------------
+#  对称性估计： Symmetry Estimation
+# ------------------------------
+# Whether open symmetry estimation 是否开启对称性估计
+EllipsoidExtraction.Symmetry.Open: 0
+
+# Downsample grid size. Extremely influence the time and efficiency.
+EllipsoidExtraction.Symmetry.GridSize: 0.1
+
+# Parameters for symmetry probability
+SymmetrySolver.Sigma: 0.1
+
+# ----------------------------------
+# Symmetry types of semantic labels
+# ----------------------------------
+  
+# Please see the definitions in the function:
+# EllipsoidExtractor::LoadSymmetryPrior()
+
+
+# -------------------------
+# 地平面提取参数： Ground Plane Extraction
+# -------------------------
+Plane.MinSize: 1000
+Plane.AngleThreshold: 3.0
+Plane.DistanceThreshold: 0.05
+Plane.MannualCheck.Open: 1
+
+# # Mannual set
+# Plane.Groundplane.param: !!opencv-matrix
+#   rows: 1
+#   cols: 4
+#   dt: d
+#   data: [-0.00144757,   0.999998, -0.00141902,     1.16925]
+
+# Whether use the normal of the groundplane to constrain the ellipsoid
+Optimizer.Edges.GravityPrior.Open: 1
+Optimizer.Edges.GravityPrior.Scale: 100
+
+
+Optimizer.Edges.2DConstrain.Close: 0
+Optimizer.Edges.3DConstrain.Close: 1
+# ------------------------------
+# Other Parameters
+# ------------------------------
+# Bounding box filter
+Measurement.Border.Pixels: 10
+Measurement.LengthLimit.Pixels: 0
+Measurement.Probability.Thresh: 0
+
+# A observation will only be valid when the robot has a change of view.
+# Close it to consider every observations.
+Tracking.KeyFrameCheck.Close: 1
+
+# Visualization
+Visualization.Builder.Open: 1
+Visualization.Builder.Global.Open: 1
+
+# when >0, filter using dis to groundplane
+Visualization.Map.Filter.DisThresh: 2.3
+
+#------------------
+# ORB相关参数： ORB Parameters
+#------------------
+
+# ORB Extractor: Number of features per image
+ORBextractor.nFeatures: 4000
+# ORB Extractor: Scale factor between levels in the scale pyramid
+ORBextractor.scaleFactor: 1.2
+# ORB Extractor: Number of levels in the scale pyramid
+ORBextractor.nLevels: 8
+# ORB Extractor: Fast threshold
+# Image is divided in a grid. At each cell FAST are extracted imposing a minimum response.
+# Firstly we impose iniThFAST. If no corners are detected we impose a lower value minThFAST
+# You can lower these values if your images have low contrast
+ORBextractor.iniThFAST: 12
+ORBextractor.minThFAST: 7
+
+#--------------------------------------------------------------------------------------------
+# 显示界面参数： Viewer Parameters
+#--------------------------------------------------------------------------------------------
+Viewer.KeyFrameSize: 0.1  # originally 0.6
+Viewer.KeyFrameLineWidth: 2
+Viewer.GraphLineWidth: 4
+Viewer.PointSize: 2
+Viewer.CameraSize: 0.15  # originally 0.7
+Viewer.CameraLineWidth: 3
+Viewer.ViewpointX: 0
+Viewer.ViewpointY: -10   # originally -10
+Viewer.ViewpointZ: -0.1
+Viewer.ViewpointF: 2000
