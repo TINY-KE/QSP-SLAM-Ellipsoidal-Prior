@@ -5,7 +5,8 @@
         "name": "C++ Launch",
         "type": "cppdbg",
         "request": "launch",
-        "program": "${workspaceFolder}/qsp_slam_rgbd",
+        // "program": "${workspaceFolder}/qsp_slam_rgbd",
+        "program": "${workspaceFolder}/qsp_slam_mono",
         // "program": "${workspaceFolder}/label_tool",
         // "program": "${workspaceFolder}/instanceAnnotation",
         "args": [
@@ -41,12 +42,17 @@
             // "/media/lj/TOSHIBA/dataset/FromZHJD/circle/associate.txt",
             // "map/self/circle"
 
-            "Vocabulary/ORBvoc.bin",
-            "configs/self_allobject_ground.yaml",
-            "/home/zhjd/work/QSP-SLAM-all/MySimDataset/GroundObjects",
-            "/home/zhjd/work/QSP-SLAM-all/MySimDataset/GroundObjects/associate.txt",
-            "map/self/GroundObjects"
+            // "Vocabulary/ORBvoc.bin",
+            // "configs/self_allobject_ground.yaml",
+            // "/home/zhjd/work/QSP-SLAM-all/MySimDataset/GroundObjects",
+            // "/home/zhjd/work/QSP-SLAM-all/MySimDataset/GroundObjects/associate.txt",
+            // "map/self/GroundObjects"
 
+
+            "Vocabulary/ORBvoc.bin",
+            "configs/freiburg_001.yaml",
+            "/media/robotlab/新加卷/ubuntu22/DSP-SLAM/data/freiburg_cars/Car001",
+            "map/freiburg/001"
         ],
         "stopAtEntry": false,
         "cwd": "${workspaceFolder}",

@@ -188,8 +188,8 @@ valid_data_types = ["Redwood", "Freiburg", "MultiObject", "AllObjectsOnTable", "
 class MonoSequence:
     def __init__(self, data_dir, configs):
         self.root_dir = data_dir
-        # self.rgb_dir = os.path.join(data_dir, "image_0")
-        self.rgb_dir = os.path.join(data_dir, "rgb")
+        self.rgb_dir = os.path.join(data_dir, "image_0")
+        # self.rgb_dir = os.path.join(data_dir, "rgb")
 
         print(f"self.root_dir = {self.root_dir}")
         print(f"self.rgb_dir = {self.rgb_dir}")

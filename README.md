@@ -1,2 +1,6 @@
-# QSP-SLAM
-Quadric Object SLAM with Deep Shape Prior
+# 恢复单目
+    + 编译qsp_slam_mono
+# 整合1
+    + 取消地面估计
+    + 取消对称性
+    + 设置相机初始位置
