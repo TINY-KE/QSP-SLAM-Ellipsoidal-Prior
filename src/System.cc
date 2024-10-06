@@ -100,7 +100,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const st
     cout << "Vocabulary loaded!" << endl << endl;
 
     // Set Object-related variables
-    cout << "1/8 py::initialize_interpreter" << std::endl;
+    cout << "1/14 py::initialize_interpreter" << std::endl;
     py::initialize_interpreter();
 
     py::module warn = py::module::import("warnings");
@@ -108,39 +108,51 @@ System::System(const string &strVocFile, const string &strSettingsFile, const st
 
     cv::FileStorage fSettings(strSettingsFile, cv::FileStorage::READ);
 
-    cout << "2/8 import sys" << std::endl;
+    cout << "2/14 import sys" << std::endl;
     py::module sys = py::module::import("sys");
 
-    cout << "3/8 sys.path.append(\"./\")" << std::endl;
+    cout << "3/14 sys.path.append(\"./\")" << std::endl;
     sys.attr("path").attr("append")("./");
     sys.attr("path").attr("append")("./reconstruct");
 
-    cout << "4/8 import reconstruct.utils as io_utils" << std::endl;
+    cout << "4/14 import reconstruct.utils as io_utils" << std::endl;
     py::module io_utils = py::module::import("reconstruct.utils");
 
     string pyCfgPath = fSettings["DetectorConfigPath"].string();
 
-    cout << "5/8 pyCfg = io_utils.get_configs(pyCfgPath)" << std::endl;
+    cout << "5/14 pyCfg = io_utils.get_configs(pyCfgPath)" << pyCfgPath << std::endl;
     pyCfg = io_utils.attr("get_configs")(pyCfgPath);
 
-    cout << "6/8 pyDecoder = get_decoder(pyCfg)" << std::endl;
+    cout << "6/14 pyDecoder = get_decoder(pyCfg)" << std::endl;
 
     pyDecoder = io_utils.attr("get_decoder")(pyCfg);
 
-    cout << "7/8 pySequence = reconstruct.get_sequence(strSequencePath, pyCfg): "<< strSequencePath<< std::endl;
+    cout << "7/14 pySequence = reconstruct.get_sequence(strSequencePath, pyCfg): "<< strSequencePath<< std::endl;
     pySequence = py::module::import("reconstruct").attr("get_sequence")(strSequencePath, pyCfg);
+    cout << "8/14  import reconstruct.get_sequence success "<< std::endl;
     
 
     // For multi decoders
     py::module deep_sdf_utils = py::module::import("deep_sdf.workspace");
+    cout << "9/14  import deep_sdf.workspace success "<< std::endl;
 
     vector<int> yolo_classes;
     vector<std::string> decoder_paths;
     fSettings["YoloClasses"] >> yolo_classes;
+    std::cout << "10/14 : yolo_classes: ";
+    for (int i : yolo_classes) {
+        std::cout << i << " ";
+    }
+    std::cout << std::endl;
     fSettings["DecoderPaths"] >> decoder_paths;
+    std::cout << "11/14 : decoder_paths: ";
+    for (const std::string& path : decoder_paths) {
+        std::cout << path << " ";
+    }
+    std::cout << std::endl;
 
     py::module optim  = py::module::import("reconstruct.optimizer");
-
+    cout << "12/14  import reconstruct.optimizer success "<< std::endl;
     for (int i_class = 0; i_class < yolo_classes.size(); i_class++){
         int class_id = yolo_classes[i_class];
         cout << "mmPyDecoders Add class: " << class_id << std::endl;
@@ -148,8 +160,9 @@ System::System(const string &strVocFile, const string &strSettingsFile, const st
         // py::object* decoder_ptr = &decoder;
         mmPyDecoders[class_id] = std::move(decoder);
     }
+    cout<< "13/14  construct mmPyDecoders success "<< std::endl;
 
-    std::cout << "8/8 ";
+    std::cout << "14/14 ";
     InitThread();
 
     //Create KeyFrame Database

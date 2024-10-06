@@ -27,12 +27,15 @@ from mmdet.apis import inference_detector, show_result_pyplot
 
 from contents import object_class_table
 
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
 
 def get_detector2d(configs):
     return Detector2D(configs)
 
 class Detector2D(object):
     def __init__(self, configs):
+        print("     get online 2D detectors -2")
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         config = configs.Detector2D.config_path
         checkpoint = configs.Detector2D.weight_path
@@ -58,17 +61,30 @@ class Detector2D(object):
         self.model.eval()
         self.min_bb_area = configs.min_bb_area
         self.predictions = None
+        print("     get online 2D detectors -3")
         self.mRow = configs.image.mRow
+        print("     get online 2D detectors -4")
         self.mCol = configs.image.mCol
+        print("     get online 2D detectors -5")
         self.mEdge = configs.image.mEdge
+        print("     get online 2D detectors -6")
+
 
     def make_prediction(self, image, object_classes=["cars"]):
-        
+        print(f"make_prediction: object_classes = {object_classes}")
         # assert object_class == "chairs" or object_class == "cars"
         for object_class in object_classes:
             assert object_class in object_class_table, f"{object_class} is not valid class to detect"
 
+        print(f"      make_prediction: mmdet api Start")
+        # 显示图片
+        # plt.imshow(image)
+        # plt.axis('off')  # 关闭坐标轴
+        # plt.gcf().canvas.set_window_title('mmdet Detector Image Input')
+        # plt.pause(0.001)  # 不暂停程序
+        # plt.show()
         self.predictions = inference_detector(self.model, image)
+        print(f"      make_prediction: mmdet api success")
 
         # print(f"type(self.predictions) = {self.predictions}")
 

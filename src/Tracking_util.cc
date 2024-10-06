@@ -219,10 +219,11 @@ void Tracking::GetObjectDetectionsMono(KeyFrame *pKF)
     mvImObjectBboxs.clear();
 
     // => Step 2: 获取帧号/帧名称，调用物体检测
-    std::string frame_name = mvstrImageFilenamesRGB[pKF->mnFrameId];
+    // std::string frame_name = mvstrImageFilenamesRGB[pKF->mnFrameId];
     // std::cout << "frame_name = " << frame_name << std::endl;
-    // py::list detections = mpSystem->pySequence.attr("get_frame_by_id")(pKF->mnFrameId);
-    py::list detections = mpSystem->pySequence.attr("get_frame_by_name")(pKF->mnFrameId, frame_name);
+    // py::list detections = mpSystem->pySequence.attr("get_frame_by_name")(pKF->mnFrameId, frame_name);
+
+    py::list detections = mpSystem->pySequence.attr("get_frame_by_id")(pKF->mnFrameId);
 
     std::cout << " => " << "detections.size() = " << detections.size() << std::endl;
 

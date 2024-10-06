@@ -41,6 +41,7 @@ def get_memory_usage():
 class Frame:
     def __init__(self, sequence, frame_id=-1, frame_name = None):
         # Load sequence properties
+        print("Frame Init -1")
         self.configs = sequence.configs
         self.root_dir = sequence.root_dir
         self.rgb_dir = sequence.rgb_dir
@@ -54,6 +55,7 @@ class Frame:
         self.min_mask_area = self.configs.min_mask_area
 
         self.data_type = sequence.data_type
+        print("Frame Init -2")
 
         if sequence.data_type == "Redwood":
             self.object_class = ["chairs"]
@@ -68,6 +70,7 @@ class Frame:
         
         # elif sequence.data_type=='Tum':
         #     self.object_class = "monitor"
+        print("Frame Init -3")
         
         self.frame_id = frame_id
         if frame_name==None:
@@ -79,6 +82,7 @@ class Frame:
         self.img_rgb = cv2.cvtColor(self.img_bgr, cv2.COLOR_BGR2RGB)
         self.img_h, self.img_w, _ = self.img_rgb.shape
         self.instances = []
+        print("Frame Init -4")
 
     def pixels_sampler(self, bbox_2d, mask):
         alpha = int(self.configs.downsample_ratio)
@@ -114,7 +118,7 @@ class Frame:
             label_path2d = os.path.join(self.lbl2d_dir, "%06d.lbl" % self.frame_id)
             det_2d = torch.load(label_path2d)
         t2 = get_time()
-        print("2D detctor takes %f seconds" % (t2 - t1))
+        # print("2D detctor takes %f seconds" % (t2 - t1))
         # print(f"self.img_rgb.shape = {self.img_rgb.shape}")
 
         # print(f"det_2d.size = {len(det_2d["pred_labels"])}")
@@ -187,6 +191,8 @@ valid_data_types = ["Redwood", "Freiburg", "MultiObject", "AllObjectsOnTable", "
 
 class MonoSequence:
     def __init__(self, data_dir, configs):
+        print("get_sequence model Freiburg -3")
+
         self.root_dir = data_dir
         self.rgb_dir = os.path.join(data_dir, "image_0")
         # self.rgb_dir = os.path.join(data_dir, "rgb")
@@ -209,27 +215,40 @@ class MonoSequence:
 
         self.configs = configs
         self.data_type = self.configs.data_type
+        print(f"self.data_type = {self.data_type}")
+
         # assert self.data_type == "Redwood" or self.data_type == "Freiburg", print("Wrong data type, supported: Redwood and Freiburg")
         assert self.data_type in valid_data_types, print(f"Wrong data type, supported: {valid_data_types}")
+        print("get_sequence model Freiburg -4")
         
         self.online = self.configs.detect_online
         # Pre-stored label path
         self.lbl2d_dir = self.configs.path_label_2d
         if not self.online:
             assert self.lbl2d_dir is not None, print()
+        print("get_sequence model Freiburg -5")
 
         # Detectors
         self.detector_2d = get_detectors(self.configs)
+        print("get_sequence model Freiburg -6")
         self.current_frame = None
+        print("get_sequence model Freiburg -7")
         self.detections_in_current_frame = None
+        print("get_sequence model Freiburg -8")
+
 
     def get_frame_by_id(self, frame_id):
+        print("[zhjd-debug] get_frame_by_id")
         self.current_frame = Frame(self, frame_id = frame_id)
+        print("[zhjd-debug] get_frame_by_id -1")
         self.current_frame.get_detections()
+        print("[zhjd-debug] get_frame_by_id -2")
         self.detections_in_current_frame = self.current_frame.instances
+        print("[zhjd-debug] get_frame_by_id -3")
         return self.detections_in_current_frame
     
     def get_frame_by_name(self, frame_id, frame_name):
+        print("[zhjd-debug] get_frame_by_name")
 
         show_cuda_memory("get_frame_by_name head")
         # print("Before Frame creation")

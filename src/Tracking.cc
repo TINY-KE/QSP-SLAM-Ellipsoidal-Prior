@@ -1185,7 +1185,7 @@ bool Tracking::NeedNewKeyFrame()
 
 void Tracking::CreateNewKeyFrame()
 {
-    
+    std::cout << "[zhjd-debug] CreateNewKeyFrame" << std::endl;
     bool frame_by_frame_state = false;
     {
         unique_lock<mutex> (mMutexFrameByFrame);
