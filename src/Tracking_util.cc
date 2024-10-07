@@ -77,7 +77,7 @@ void Tracking::GetObjectDetectionsLiDAR(KeyFrame *pKF) {
 /**
  * （双目+Lidar）物体数据关联
  *  建立观测与地图物体之间的关联
- * 
+ *  zhjd: 不是只能创建一个新物体？
 */
 void Tracking::ObjectDataAssociation(KeyFrame *pKF)
 {
@@ -624,7 +624,7 @@ void Tracking::OpenGroundPlaneEstimation(){
 }
 
 // TODO: 更新物体观测
-void Tracking::UpdateObjectObservation(ORB_SLAM2::Frame *pFrame, KeyFrame* pKF, bool withAssociation) {
+void Tracking::UpdateObjectObservation_GenerateEllipsoid(ORB_SLAM2::Frame *pFrame, KeyFrame* pKF, bool withAssociation) {
     clock_t time_0_start = clock();
     // 
     bool use_infer_detection = Config::Get<int>("System.MonocularInfer.Open") > 0;
@@ -671,18 +671,23 @@ void Tracking::UpdateObjectObservation(ORB_SLAM2::Frame *pFrame, KeyFrame* pKF, 
         GenerateObservationStructure(pFrame);
     }
     
-    // // [6] 补充调试环节： 测试语义先验对物体的影响
-    // else
-    // {
-    //     GenerateObservationStructure(pFrame);   // 注意必须生成 measure 结构才能 Infer
+    // [6] 补充调试环节： 测试语义先验对物体的影响
+    else
+    {
+        // [zhjd] 将std::vector<ObjectDetection*>结构的mvpDetectedObjects 转为 Eigen::MatrixXd结构的mmObservations
+        pFrame->SetObservations(pKF);  
 
-    //     const string priconfig_path = Config::Get<std::string>("Dataset.Path.PriTable");
-    //     bool bUseInputPri = (priconfig_path.size() > 0);
-    //     InferObjectsWithSemanticPrior(pFrame, false, use_infer_detection);   // 使用 1:1:1 的比例初始化
-    //     // InferObjectsWithSemanticPrior(pFrame, bUseInputPri, use_infer_detection); // 使用PriTable先验初始化，然而存在问题，尚未调试完毕
+        // 将Eigen::MatrixXd结构  转为 Measurement结构
+        GenerateObservationStructure(pFrame);   // 注意必须生成 measure 结构才能 Infer
 
-    //     GenerateObservationStructure(pFrame);
-    // }
+        // const string priconfig_path = Config::Get<std::string>("Dataset.Path.PriTable");
+        // bool bUseInputPri = (priconfig_path.size() > 0);
+        // InferObjectsWithSemanticPrior(pFrame, bUseInputPri, use_infer_detection); // 使用PriTable先验初始化，然而存在问题，尚未调试完毕
+
+        InferObjectsWithSemanticPrior(pFrame, false, use_infer_detection);   // 使用 1:1:1 的比例初始化
+
+        GenerateObservationStructure(pFrame);
+    }
 
     // // Output running time
     // // cout << " -- UpdateObjectObservation Time: " << endl;
@@ -705,13 +710,6 @@ void Tracking::TaskGroundPlane()
         ActivateGroundPlane(mGroundPlane);
 }
 
-void Tracking::SetGroundPlaneMannually(const Eigen::Vector4d &param)
-{
-    std::cout << "[GroundPlane] Set groundplane mannually: " << param.transpose() << std::endl;
-    miGroundPlaneState = 3;
-    mGroundPlane.param = param;
-    mGroundPlane.color = Vector3d(0,1,0);
-}
 
 void Tracking::ProcessGroundPlaneEstimation()
 {
@@ -1460,5 +1458,88 @@ std::vector<Frame*> Tracking::GetAllFramesWithKeyframe()
 {
     return mvpFrames;
 }
+
+
+
+void Tracking::AssociateObjectsByProjection_mono(ORB_SLAM2::KeyFrame *pKF)
+{
+    auto mvpMapPoints = pKF->GetMapPointMatches();
+    // Try to match and triangulate key-points with last key-frame
+    auto detectionsKF1 = pKF->mvpDetectedObjects;
+    for (int d_i = 0; d_i < detectionsKF1.size(); d_i++)
+    {
+        // cout << "Detection: " << d_i + 1 << endl;
+        auto detKF1 = detectionsKF1[d_i];
+        map<int, int> observed_object_id;
+        int nOutliers = 0;
+        for (int k_i : detKF1->GetFeaturePoints()) {
+            auto pMP = mvpMapPoints[k_i];
+            if (!pMP)
+                continue;
+            if (pMP->isOutlier())
+            {
+                nOutliers++;
+                continue;
+            }
+
+            if (pMP->object_id < 0)
+                continue;
+
+            if (observed_object_id.count(pMP->object_id))
+                observed_object_id[pMP->object_id] += 1;
+            else
+                observed_object_id[pMP->object_id] = 1;
+        }
+
+        // If associated with an object
+        if (!observed_object_id.empty())
+        {
+            // Find object that has the most matches
+            int object_id_max_matches = 0;  // global object id
+            int max_matches = 0;
+            for (auto it = observed_object_id.begin(); it != observed_object_id.end(); it++) {
+                if (it->second > max_matches) {
+                    max_matches = it->second;
+                    object_id_max_matches = it->first;
+                }
+            }
+
+            // associated object
+            auto pMO = mpMap->GetMapObject(object_id_max_matches);
+            pKF->AddMapObject(pMO, d_i);
+            detKF1->isNew = false;
+
+            // add newly detected feature points to object
+            int newly_matched_points = 0;
+            for (int k_i : detKF1->GetFeaturePoints()) {
+                auto pMP = mvpMapPoints[k_i];
+                if (pMP)
+                {
+                    if (pMP->isBad())
+                        continue;
+                    // new map points
+                    if (pMP->object_id < 0)
+                    {
+                        pMP->in_any_object = true;
+                        pMP->object_id = object_id_max_matches;
+                        pMO->AddMapPoints(pMP);
+                        newly_matched_points++;
+                    }
+                    else
+                    {
+                        // if pMP is already associate to a different object, set bad flag
+                        if (pMP->object_id != object_id_max_matches)
+                            pMP->SetBadFlag();
+                    }
+                }
+            }
+            /*cout <<  "Matches: " << max_matches << ", New points: " << newly_matched_points << ", Keypoints: " <<
+                 detKF1->mvKeysIndices.size() << ", Associated to object by projection " << object_id_max_matches
+                 << endl << endl;*/
+        }
+
+    }
+}
+
 
 }

@@ -107,7 +107,15 @@ bool MapDrawer::drawEllipsoids(double prob_thresh) {
         if(pE->prob > prob_thresh )
             ellipsoids_prob.push_back(pE);
     }
+
+    std::cout << "[MapDrawer::drawEllipsoids] "
+        << "ellipsoids.size() = " << ellipsoids.size() << std::endl;
+    if(!ellipsoids.empty()){
+        auto last_ellipsoid = ellipsoids[ellipsoids.size()-1];
+        std::cout << "[MapDrawer::drawEllipsoids]  Scale of last ellipsoid: " << last_ellipsoid->scale.transpose() << std::endl;
+    }
     
+
     drawAllEllipsoidsInVector(ellipsoids_prob, 4);
 
     return true;

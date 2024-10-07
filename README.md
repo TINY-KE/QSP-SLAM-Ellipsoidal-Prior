@@ -1,10 +1,26 @@
-# 恢复单目
+# 恢复单目,但物体检测结果待筛选 commit d4ec5517bcfad64dd372450c6f1653790c337862
     + 编译qsp_slam_mono
     + 补充freiburg_001.yaml和config_freiburg_001.json
     + 将get_frame_by_name 改回 get_frame_by_id
-    
-    + 待：目前用的汽车检测结果，用的是左上角第一个，可以推测用的是汽车检测结果的第一个。需要改为 同类型的正中心的。
 
+# 恢复单目
+    + 目前用的汽车检测结果，用的是左上角第一个，改为 同类型的正中心的。修改yaml和json中的图片宽度和高度。
+    + 修改yaml中的物体yoloclass和DecoderPaths
+    + 在localmapping中，根据.attr("reconstruct_object")寻找
+    + 数据关联到了第一个物体
+    + 
+
+    +  修改了的参数：
+        System.UseEllipsoldPoseForDSP.Open: 0
+        CreateSingleObject: 1
+        Tracking.AssociateObjectWithEllipsold: 0
+    + 
+
+# Ellipsoids 和 Ellipsoids Objects 的区别
+    + GetAllEllipsoids() GetAllEllipsoidsVisual()  <--->  GetAllEllipsoidsObjects()
+    + mspEllipsoids <--->  mspEllipsoidsObjects
+    + addEllipsoid(  addEllipsoidVisual( <--->  addEllipsoidObjects(ellipsoid *pObj)
+    + 
 
 # 整合1
     + 取消地面估计

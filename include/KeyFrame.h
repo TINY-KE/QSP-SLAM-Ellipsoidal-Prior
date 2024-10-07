@@ -264,6 +264,10 @@ protected:
     std::mutex mMutexFeatures;
     std::mutex mMutexObjects;
 
+//[整合]
+public:
+    cv::Mat mGroundtruthPose_mat;  
+    
 };
 
 } //namespace ORB_SLAM

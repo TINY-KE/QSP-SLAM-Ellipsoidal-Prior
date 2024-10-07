@@ -293,6 +293,13 @@ private:
     cv::Mat mRwc;
     cv::Mat mOw; //==mtwc
 
+
+// [整合]
+public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+    cv::Mat mGroundtruthPose_mat;           // camera groundtruth
+
 };
 
 }// namespace ORB_SLAM

@@ -58,6 +58,8 @@
 #include <mutex>
 #include <ctime>
 
+#include "include/core/PriorInfer.h"
+
 
 namespace ORB_SLAM2
 {
@@ -128,7 +130,7 @@ public:
     /** --------------------------------
      * Object Observation 物体观测相关
      * ---------------------------------*/
-    void UpdateObjectObservation(ORB_SLAM2::Frame *pFrame, KeyFrame* pKF, bool withAssociation);
+    void UpdateObjectObservation_GenerateEllipsoid(ORB_SLAM2::Frame *pFrame, KeyFrame* pKF, bool withAssociation);
     /** --------------------------------
      * Ellipsoid 椭球体相关
      * ---------------------------------*/
@@ -138,19 +140,13 @@ public:
      * ---------------------------------*/
     void OpenGroundPlaneEstimation();
     void TaskGroundPlane();
+    // Mannual Set Groundplane
     void SetGroundPlaneMannually(const Eigen::Vector4d &param);
+    //将平面添加到地图中,用于可视化； 并且将平面用于椭球体的生成
     void ActivateGroundPlane(g2o::plane &groundplane);
     void ProcessGroundPlaneEstimation();
 
-    void VisualizeManhattanPlanes();
-
-
-    // void TaskRelationship(ORB_SLAM2::Frame* pFrame);
-    // void RefineObjectsWithRelations(ORB_SLAM2::Frame *pFrame);
-
-    // void Update3DObservationDataAssociation(ORB_SLAM2::Frame* pFrame, std::vector<int>& associations, std::vector<bool>& KeyFrameChecks);
     void UpdateDepthEllipsoidEstimation(ORB_SLAM2::Frame* pFrame, KeyFrame* pKF, bool withAssociation);
-    // void UpdateDepthEllipsoidUsingPointModel(ORB_SLAM2::Frame* pFrame);
 
     Builder* GetBuilder();
     bool SavePointCloudMap(const string& path);
@@ -332,7 +328,6 @@ protected:
 
     // Plane
     int miGroundPlaneState; // 0: Closed  1: estimating 2: estimated 3: set by mannual
-    g2o::plane mGroundPlane;
     PlaneExtractor* pPlaneExtractor;
     PlaneExtractorManhattan* pPlaneExtractorManhattan;
     int miMHPlanesState; // 0: Closed 1: estimating 2: estimated
@@ -359,6 +354,28 @@ protected:
 
     bool associate_debug;
 
+// [整合]
+public:
+    void AssociateObjectsByProjection_mono(KeyFrame *pKF);  // assocating detection to object by projecting map points
+
+    std::string mStrSettingPath; 
+    
+    void InferObjectsWithSemanticPrior(ORB_SLAM2::Frame* pFrame, bool use_input_pri, bool replace_detection);
+
+
+    // 设置相机的真实位姿,但只用于第一帧
+    void SetRealPose(ORB_SLAM2::Frame* pFrame);
+
+    // 只要导入PlaneExtractor这个库, 就会报错
+    // #include <src/plane/PlaneExtractor.h>
+    // #include <src/plane/PlaneExtractorManhattan.h>
+    // PlaneExtractor* pPlaneExtractor;
+    // PlaneExtractorManhattan* pPlaneExtractorManhattan;
+
+    g2o::plane mGroundPlane;
+
+    // 可视化平面
+    void VisualizeManhattanPlanes();
 };
 
 } //namespace ORB_SLAM

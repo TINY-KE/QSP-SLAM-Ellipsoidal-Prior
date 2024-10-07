@@ -120,14 +120,14 @@ System::System(const string &strVocFile, const string &strSettingsFile, const st
 
     string pyCfgPath = fSettings["DetectorConfigPath"].string();
 
-    cout << "5/14 pyCfg = io_utils.get_configs(pyCfgPath)" << pyCfgPath << std::endl;
+    cout << "5/14 读取python所需的json文件: " << pyCfgPath << std::endl;
     pyCfg = io_utils.attr("get_configs")(pyCfgPath);
 
     cout << "6/14 pyDecoder = get_decoder(pyCfg)" << std::endl;
 
     pyDecoder = io_utils.attr("get_decoder")(pyCfg);
 
-    cout << "7/14 pySequence = reconstruct.get_sequence(strSequencePath, pyCfg): "<< strSequencePath<< std::endl;
+    cout << "7/14 生成物体检测的reconstruct.get_sequence: "<< strSequencePath<< std::endl;
     pySequence = py::module::import("reconstruct").attr("get_sequence")(strSequencePath, pyCfg);
     cout << "8/14  import reconstruct.get_sequence success "<< std::endl;
     
@@ -182,6 +182,11 @@ System::System(const string &strVocFile, const string &strSettingsFile, const st
     mpTracker = new Tracking(this, mpVocabulary, mpFrameDrawer, mpMapDrawer,
                              mpMap, mpKeyFrameDatabase, strSettingsFile, mSensor);
 
+    // 地平面 
+    // SetGroundPlaneMannually(Vector4d(0.00667181,  -0.015002,   0.999865,  0.0274608));
+    mpTracker->SetGroundPlaneMannually(Vector4d(0,  0,   1,  0));
+    mpMap->addPlane(&(mpTracker->mGroundPlane));
+    
     //Initialize the Local Mapping thread and launch
     // Set an option: Multithread or single thread
     

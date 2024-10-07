@@ -199,7 +199,7 @@ void LocalMapping::CreateNewMapObjects()
 {
     PyThreadStateLock PyThreadLock;
 
-    // cout << "LocalMapping: Started new objects creation" << endl;
+    cout << "[zhjd-debug] LocalMapping: Started new objects creation" << endl;
 
     /**
      * 获取关键帧位姿、物体观测，遍历物体观测
@@ -208,7 +208,7 @@ void LocalMapping::CreateNewMapObjects()
 
     auto SE3Twc = Converter::toMatrix4f(mpCurrentKeyFrame->GetPoseInverse());
     auto mvpObjectDetections = mpCurrentKeyFrame->GetObjectDetections();
-    // cout << "LocalMapping: mvpObjectDetections.size() = " << mvpObjectDetections.size() << endl;
+    cout << "[zhjd-debug] LocalMapping: mvpObjectDetections.size() = " << mvpObjectDetections.size() << endl;
 
     for (int i = 0; i < mvpObjectDetections.size(); i++)
     {
@@ -284,7 +284,7 @@ void LocalMapping::CreateNewMapObjects()
         cout << "mpObjectDrawer->AddObject" << endl;
         mlpRecentAddedMapObjects.push_back(pNewObj);
     }
-    // cout << "LocalMapping: Finished new objects creation" << endl;
+    cout << "[zhjd-debug] LocalMapping: Finished new objects creation" << endl;
 }
 
 /*
@@ -360,7 +360,7 @@ void LocalMapping::CreateNewObjectsFromDetections()
 
 void LocalMapping::ProcessDetectedObjects()
 {
-    std::cout << "\n[ LocalMapping - ProcessDetectedObjects ]" << std::endl;
+    std::cout << "\n[zhjd-debug] [ LocalMapping - ProcessDetectedObjects ]" << std::endl;
     char key;
     // std::cout << "Ready to reconstruct_object" << std::endl;
     // std::cout << "Press [ENTER] to continue ... " << std::endl;

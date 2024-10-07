@@ -71,12 +71,12 @@ class Detector2D(object):
 
 
     def make_prediction(self, image, object_classes=["cars"]):
-        print(f"make_prediction: object_classes = {object_classes}")
+        # print(f"make_prediction: object_classes = {object_classes}")
         # assert object_class == "chairs" or object_class == "cars"
         for object_class in object_classes:
             assert object_class in object_class_table, f"{object_class} is not valid class to detect"
 
-        print(f"      make_prediction: mmdet api Start")
+        # print(f"      make_prediction: mmdet api Start")
         # 显示图片
         # plt.imshow(image)
         # plt.axis('off')  # 关闭坐标轴
@@ -84,7 +84,7 @@ class Detector2D(object):
         # plt.pause(0.001)  # 不暂停程序
         # plt.show()
         self.predictions = inference_detector(self.model, image)
-        print(f"      make_prediction: mmdet api success")
+        # print(f"      make_prediction: mmdet api success")
 
         # print(f"type(self.predictions) = {self.predictions}")
 
@@ -107,7 +107,7 @@ class Detector2D(object):
         print(f"object_classes = {object_classes}")
         
         any_detect = False
-        print(f"detect ")
+        # print(f"detect ")
         for object_class in object_classes:
             for object_id in object_class_table[object_class]:
                 o = object_id
@@ -141,7 +141,7 @@ class Detector2D(object):
         else:
             masks = np.stack(masks, axis=0)
 
-        print(f"make_prediction: n_det = {n_det}")
+        # print(f"make_prediction: n_det = {n_det}")
 
         # img = show_result_pyplot(self.model, image, self.predictions, score_thr=0.2)
         # cv2.imshow("labeled img", img)
