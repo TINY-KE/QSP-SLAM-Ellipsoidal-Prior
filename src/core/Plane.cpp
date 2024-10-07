@@ -147,11 +147,16 @@ namespace g2o
         double dis = std::abs(dis1 - dis2);
         return dis;
     }
-
+    
+    // zhjd： 将平面从w坐标系， 转到c坐标系下
     void plane::transform(const g2o::SE3Quat& Twc){
         Matrix4d matTwc = Twc.to_homogeneous_matrix();
+        // std::cout << "matTwc : " << matTwc << std::endl;
         Matrix4d matTwc_trans = matTwc.transpose();
+        // std::cout << "matTw_trans : " << matTwc_trans  << std::endl;
         Matrix4d matTwc_trans_inv = matTwc_trans.inverse();
+        // std::cout << "matTwc_trans_inv : " << matTwc_trans_inv  << std::endl;
+        // 平面的变换公式 Twc*Pw = Pc
         param = matTwc_trans_inv * param;
     }
 

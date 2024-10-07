@@ -203,6 +203,7 @@ namespace g2o
     // transform a local cuboid to global cuboid  Twc is camera pose. from camera to world
     ellipsoid ellipsoid::transform_from(const SE3Quat& Twc) const{
         ellipsoid res;
+        // Twc*Tcq = Twq
         res.pose = Twc*this->pose;
         res.scale = this->scale;
         

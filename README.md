@@ -3,7 +3,7 @@
     + 补充freiburg_001.yaml和config_freiburg_001.json
     + 将get_frame_by_name 改回 get_frame_by_id
 
-# 显示原点大球 commit 962c1b35539d0e164a0c9efd979f18741a8ca28e
+# 显示原点大球 commit 5c090653542062dd0c397afa6db99ab93de8ab66
     + 目前用的汽车检测结果，用的是左上角第一个，改为 同类型的正中心的。修改yaml和json中的图片宽度和高度。
     + 修改yaml中的物体yoloclass和DecoderPaths
     + sdf模型创建失败： 通过在localmapping中根据.attr("reconstruct_object")寻找，可知是数据关联失败，当前使用的是李建的拖球体数据关联，改回dsp的数据关联。修改方法——修改yaml中的参数：
@@ -13,18 +13,41 @@
     + 添加setrealpose和[改进] [位姿真值] ， 将相机和point转移到真实世界坐标系下。
     + 修改InferObjectsWithSemanticPrior， 在pangolin中显示原点大球
 
-# sa
+# 实现了MonocularInfer，但是在车头观测时不够长
     + 添加地平面 mpTracker->SetGroundPlaneMannually(Vector4d(0,  0,   1,  0));
     + 修改InferObjectsWithSemanticPrior， 生成地面上的椭球
-    + 
+    + GenerateInitGuess用的是世界坐标系下的地面
+
+# 
+    + 待： 往一个拖球体中不断添加平面。
 
     + 待： 汽车目前是底朝天，原因应该是在聚类时，修改了算法。
+
+
+# 
 
 # Ellipsoids 和 Ellipsoids Objects 的区别
     + GetAllEllipsoids() GetAllEllipsoidsVisual()  <--->  GetAllEllipsoidsObjects()
     + mspEllipsoids <--->  mspEllipsoidsObjects
     + addEllipsoid(  addEllipsoidVisual( <--->  addEllipsoidObjects(ellipsoid *pObj)
     + 
+
+# plane::transform中，为什么matTwc_trans_inv 和 matTwc 不相同
+    matTwc :    -0.043747   0.231869  -0.971763  0.0254108
+                0.998925  0.0250846 -0.0389844  0.0779903
+                0.0153371  -0.972424  -0.232717   0.398303
+                        0          0          0          1
+    matTw_trans :  -0.043747   0.998925  0.0153371          0
+                    0.231869  0.0250846  -0.972424          0
+                    -0.971763 -0.0389844  -0.232717          0
+                    0.0254108  0.0779903   0.398303          1
+    matTwc_trans_inv :  -0.043747   0.231869  -0.971763         -0
+                        0.998925  0.0250846 -0.0389844         -0
+                        0.0153371  -0.972424  -0.232717         -0
+                        -0.0829036   0.379471   0.120425          1
+
+
+为什答案会是这样
 
 # 整合1
     + 取消地面估计

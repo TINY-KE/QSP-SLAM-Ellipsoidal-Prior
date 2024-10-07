@@ -376,8 +376,8 @@ cv::Mat Tracking::GrabImageMonocular(const cv::Mat &im, const double &timestamp)
     else
         mCurrentFrame = Frame(mImGray,timestamp,mpORBextractorLeft,mpORBVocabulary,mK,mDistCoef,mbf,mThDepth);
 
-    // 初始帧的位姿
-    SetRealPose(&mCurrentFrame);
+    // [改进] [位姿真值] [groundtruth] 初始帧的位姿
+    SetRealPose();
 
     // todo: 目前是手动指定了平面, 之后可以改为自动检测
     ActivateGroundPlane(mGroundPlane);
@@ -843,7 +843,7 @@ void Tracking::CreateInitialMapMonocular()
         }
     }
 
-    // >>>>>>>>>>>>>>>>>>>>>>> [改进] [位姿真值] 将相机和point转移到世界坐标系下
+    // >>>>>>>>>>>>>>>>>>>>>>> [改进] [位姿真值] [groundtruth] 将相机和point转移到世界坐标系下
     std::cout << "将相机和point转移到世界坐标系下" << std::endl;
     cv::Mat Worldframe_to_Firstframe = mCurrentFrame.mGroundtruthPose_mat;
     std::cout << "第一帧的真实位姿 :"<< Worldframe_to_Firstframe << std::endl;

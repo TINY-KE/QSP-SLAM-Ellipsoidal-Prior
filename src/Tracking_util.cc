@@ -242,6 +242,9 @@ void Tracking::GetObjectDetectionsMono(KeyFrame *pKF)
         auto py_det = detections[detected_idx];
         det->background_rays = py_det.attr("background_rays").cast<Eigen::MatrixXf>();
         auto mask = py_det.attr("mask").cast<Eigen::MatrixXf>();
+        det->bbox = py_det.attr("bbox").cast<Eigen::Vector4d>();
+        det->label = py_det.attr("label").cast<int>();
+        det->prob = py_det.attr("prob").cast<double>();
 
         cv::Mat mask_cv;
         cv::eigen2cv(mask, mask_cv);
@@ -252,8 +255,15 @@ void Tracking::GetObjectDetectionsMono(KeyFrame *pKF)
                                                cv::Point(maskErrosion, maskErrosion));
         cv::erode(mask_cv, mask_erro, kernel);
 
-        mvImObjectMasks.push_back(std::move(mask_cv));
+        int x1 = (int)(det->bbox(0)), y1 = (int)(det->bbox(1)), \
+            x2 = (int)(det->bbox(2)), y2 = (int)(det->bbox(3));
 
+        mvImObjectMasks.push_back(std::move(mask_cv));
+        mvImObjectBboxs.push_back({x1,y1,x2,y2});
+        std::cout<< " [zhjd-debug] bbox: " << "x1:"<<x1 
+            << ", y1:" << y1 << ", x2:" << x2 << ", y2:" << y2
+            << std::endl;
+            
         // get 2D feature points inside mask
         for (int i = 0; i < pKF->mvKeys.size(); i++)
         {

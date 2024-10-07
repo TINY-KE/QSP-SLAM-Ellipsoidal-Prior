@@ -172,7 +172,7 @@ flip_sample_num: 4
 # -----------------------------
 #   Monocular Infer
 # -----------------------------
-MonocularInfer.Init.Dis: 5
+MonocularInfer.Init.Dis: 1
 
 # -----------------------------
 #   Semantic  Prior
@@ -184,9 +184,9 @@ Dataset.Path.PriTable: "./config/pritable.txt"
 SemanticPrior.PriorD: 1
 SemanticPrior.PriorE: 1
 # Prior weight
-SemanticPrior.Weight: 1
+SemanticPrior.Weight: 0.01
 # Ground Plane Contrain weight
-SemanticPrior.GroundWeight: 2
+SemanticPrior.GroundWeight: 20
 
 # deg
 Optimizer.Edges.3DConstrain.PlaneAngle.Sigma: 100

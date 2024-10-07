@@ -57,6 +57,12 @@ namespace ORB_SLAM2 {
         {
             Measurement& m = meas[i];
             Vector4d bbox = m.ob_2d.bbox;
+            // 检测bbox是否正确
+            // int x1 = (int)(bbox(0)), y1 = (int)(bbox(1)), \
+            // x2 = (int)(bbox(2)), y2 = (int)(bbox(3));
+            // std::cout<< " [zhjd-debug] bbox: " << "x1:"<<x1 
+            // << ", y1:" << y1 << ", x2:" << x2 << ", y2:" << y2
+            // << std::endl;
 
             // Check : 确保该物体类型是在地面之上的
             // if(!CheckLabelOnGround(m.ob_2d.label)) continue;
@@ -72,69 +78,88 @@ namespace ORB_SLAM2 {
             pri.print();
 
             // RGB_D + Prior
-            g2o::plane ground_pl_local = mGroundPlane; ground_pl_local.transform(pFrame->cam_pose_Tcw);
-
+            g2o::plane ground_pl_local = mGroundPlane;   //目前是相机坐标系下的地面
+            ground_pl_local.transform(pFrame->cam_pose_Tcw);  // 转换到了 世界坐标系下
+            std:;cout<<"[InferObjectsWithSemanticPrior] 0 地平面： world参数:"<< mGroundPlane.param.transpose()
+            << " local参数:" << ground_pl_local.param.transpose() <<std::endl;
+            
             priorInfer pi(mRows, mCols, mCalib);
 
             // *********************************
             // 生成一个新的 Initguess
             // *********************************
-            std::cout<<"[GenerateInitGuess] 1 准备 初始化一个椭球体"<<std::endl;
+            std::cout<<"[InferObjectsWithSemanticPrior] 1 准备 初始化一个椭球体"<<std::endl;
             std::cout << "LastCost: " << pi.GetLastCost() << std::endl;
             // pi.GenerateInitGuess(bbox, ground_pl_local.param);
             // g2o::ellipsoid e_init_guess = pi.GenerateInitGuess(bbox, ground_pl_local.param);
-            g2o::ellipsoid* e_init_guess = new g2o::ellipsoid(); // 获得估计出椭球体的 rpy; 只是将 x,y,z,a,b,c 都设置为0.
-            Eigen::Matrix<double, 10, 1>  e_param;
-            e_param <<     0, 0, 0,   // x y z
-                            0, 0, 0, 0,  // qx qy qz qw
-                            0.5, 0.5, 0.5   // length_a  length_b  length_c
-                        ;
-            std::cout << "e_param: 11:" << e_param.transpose() << std::endl;
-            e_init_guess->fromVector(e_param);
-            e_init_guess->prob = 1.0;
-            e_init_guess->setColor(Vector3d(1,0,0.1));
-            std::cout<<"[GenerateInitGuess] 3 结束 初始化一个椭球体,Scale: "<< e_init_guess->scale.transpose() <<std::endl;
+            bool debug_init_guess = false;
+            if(debug_init_guess){
+                g2o::ellipsoid* e_init_guess = new g2o::ellipsoid(); // 获得估计出椭球体的 rpy; 只是将 x,y,z,a,b,c 都设置为0.
+                Eigen::Matrix<double, 10, 1>  e_param;
+                e_param <<     0, 0, 0,   // x y z
+                                0, 0, 0, 0,  // qx qy qz qw
+                                0.5, 0.5, 0.5   // length_a  length_b  length_c
+                            ;
+                std::cout << "e_param: 11:" << e_param.transpose() << std::endl;
+                e_init_guess->fromVector(e_param);
+                e_init_guess->prob = 1.0;
+                e_init_guess->setColor(Vector3d(1,0,0.1));
+                std::cout<<"[InferObjectsWithSemanticPrior] 2 结束 初始化一个椭球体,Scale: "<< e_init_guess->scale.transpose() <<std::endl;
 
-            mpMap->addEllipsoidVisual(e_init_guess); // 可视化
-
-            // g2o::ellipsoid e_init_guess = pi.GenerateInitGuess(bbox, ground_pl_local.param);
-            // ------------------------
-
-        //     bool bUsePriInit = false;   // 未开发完成的功能
-        //     g2o::ellipsoid e_infer_mono_guess;
+                mpMap->addEllipsoidVisual(e_init_guess); // 可视化
+            }
+            else{
+                g2o::ellipsoid e_init_guess = pi.GenerateInitGuess(bbox, ground_pl_local.param);
+                g2o::ellipsoid* e_init_guess_1 = new g2o::ellipsoid(e_init_guess.transform_from(pFrame->cam_pose_Twc)); 
+                e_init_guess_1->prob = 1.0;
+                e_init_guess_1->setColor(Vector3d(0.2,0.2,0.2));
+                std::cout<<"[InferObjectsWithSemanticPrior] 2 结束 初始化一个椭球体,Scale: "<< e_init_guess_1->scale.transpose() <<std::endl;
+                mpMap->ClearEllipsoidsVisual();
+                mpMap->addEllipsoidVisual(e_init_guess_1); // 可视化
             
-        //     e_infer_mono_guess = pi.MonocularInfer(e_init_guess, pri, weight, ground_pl_local);
-        //     // 设置椭球体label, prob
-        //     e_infer_mono_guess.miLabel = m.ob_2d.label;
-        //     e_infer_mono_guess.prob = m.ob_2d.rate; // 暂时设置为 bbox 检测的概率吧
-        //     e_infer_mono_guess.bbox = m.ob_2d.bbox;
-        //     e_infer_mono_guess.prob_3d =  1.0; // 暂定!
-        //     g2o::ellipsoid* pEInfer_mono_guess = new g2o::ellipsoid(e_infer_mono_guess.transform_from(pFrame->cam_pose_Twc));
+                // ------------------------
 
-        //     Vector3d color_rgb(144,238,144); color_rgb/=255.0;
-        //     if(!use_input_pri) color_rgb = Vector3d(1,0,0); // 默认版本为红色
-        //     pEInfer_mono_guess->setColor(color_rgb);
-        //     // mpMap->addEllipsoidObservation(pEInfer_mono_guess); // 可视化
-        //     std::cout << " Before Monocular Infer: " << e_init_guess.toMinimalVector().transpose() << std::endl;
-        //     std::cout << " After Monocular Infer: " << e_infer_mono_guess.toMinimalVector().transpose() << std::endl;
+                bool bUsePriInit = false;   // 未开发完成的功能
+                g2o::ellipsoid e_infer_mono_guess;
+                
+                e_infer_mono_guess = pi.MonocularInfer(e_init_guess, pri, weight, ground_pl_local);
+                // 设置椭球体label, prob
+                e_infer_mono_guess.miLabel = m.ob_2d.label;
+                e_infer_mono_guess.prob = m.ob_2d.rate; // 暂时设置为 bbox 检测的概率吧
+                e_infer_mono_guess.bbox = m.ob_2d.bbox;
+                e_infer_mono_guess.prob_3d =  1.0; // 暂定!
+                g2o::ellipsoid* pEInfer_mono_guess = new g2o::ellipsoid(e_infer_mono_guess.transform_from(pFrame->cam_pose_Twc));
 
-        //     // DEBUG可视化： 显示一下初始状态的椭球体
-        //     // g2o::ellipsoid* pE_init_guess = new g2o::ellipsoid(e_init_guess.transform_from(pFrame->cam_pose_Twc));
-        //     // pE_init_guess->prob = 1.0;
-        //     // pE_init_guess->setColor(Vector3d(0.1,0,0.1));
-        //     // mpMap->addEllipsoidVisual(pE_init_guess); // 可视化
+                Vector3d color_rgb(144,238,144); color_rgb/=255.0;
+                if(!use_input_pri) color_rgb = Vector3d(1,0,0); // 默认版本为红色
+                pEInfer_mono_guess->setColor(color_rgb);
+                // mpMap->addEllipsoidObservation(pEInfer_mono_guess); // 可视化
+                mpMap->addEllipsoidVisual(pEInfer_mono_guess); // 可视化
 
-        //     // --------- 将结果放到frame中存储
-        //     if(replace_detection)
-        //         pFrame->mpLocalObjects[i] = new g2o::ellipsoid(e_infer_mono_guess);
+                std::cout << " Before Monocular Infer: " << e_init_guess.toMinimalVector().transpose() << std::endl;
+                std::cout << " After Monocular Infer: " << e_infer_mono_guess.toMinimalVector().transpose() << std::endl;
 
-        //     // DEBUGING: 调试为何Z轴会发生变化， 先输出在局部坐标系下的两个rotMat
-        //     // std::cout << "InitGuess RotMat in Camera: " << std::endl << e_init_guess.pose.rotation().toRotationMatrix() << std::endl;
-        //     // std::cout << "Infered RotMat in Camera: " << std::endl << e_infer_mono_guess.pose.rotation().toRotationMatrix() << std::endl;
-        //     // std::cout << "GroundPlaneNorma in Camera: " << std::endl << ground_pl_local.normal().head(3).normalized() << std::endl;
+                // DEBUG可视化： 显示一下初始状态的椭球体
+                // g2o::ellipsoid* pE_init_guess = new g2o::ellipsoid(e_init_guess.transform_from(pFrame->cam_pose_Twc));
+                // pE_init_guess->prob = 1.0;
+                // pE_init_guess->setColor(Vector3d(0.1,0,0.1));
+                // mpMap->addEllipsoidVisual(pE_init_guess); // 可视化
 
-        //     // 可视化bbox的约束平面
-        //     // VisualizeConstrainPlanes(e_infer_mono_guess, pFrame->cam_pose_Twc, mpMap); // 中点定在全局坐标系
+                // --------- 将结果放到frame中存储
+                if(replace_detection)
+                    pFrame->mpLocalObjects[i] = new g2o::ellipsoid(e_infer_mono_guess);
+            
+                // DEBUGING: 调试为何Z轴会发生变化， 先输出在局部坐标系下的两个rotMat
+                std::cout << "InitGuess RotMat in Camera: " << std::endl << e_init_guess.pose.rotation().toRotationMatrix() << std::endl;
+                std::cout << "Infered RotMat in Camera: " << std::endl << e_infer_mono_guess.pose.rotation().toRotationMatrix() << std::endl;
+                std::cout << "GroundPlaneNorma in Camera: " << std::endl << ground_pl_local.normal().head(3).normalized() << std::endl;
+
+                // 可视化bbox的约束平面
+                mpMap->clearPlanes();
+                // mpTracker->SetGroundPlaneMannually(Vector4d(0,  0,   1,  0));
+                mpMap->addPlane(&mGroundPlane);
+                VisualizeConstrainPlanes(e_infer_mono_guess, pFrame->cam_pose_Twc, mpMap); // 中点定在全局坐标系
+            }
 
         }       
 
@@ -155,7 +180,7 @@ namespace ORB_SLAM2 {
     }
 
 
-    void Tracking::SetRealPose(ORB_SLAM2::Frame* pFrame){
+    void Tracking::SetRealPose(){
         // std::cout << "[Set real pose for the first frame from] : "<< mStrSettingPath << std::endl;
         cv::FileStorage fSettings(mStrSettingPath, cv::FileStorage::READ);
         int ConstraintType = fSettings["ConstraintType"];

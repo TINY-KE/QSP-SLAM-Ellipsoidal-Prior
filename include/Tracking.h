@@ -364,7 +364,7 @@ public:
 
 
     // 设置相机的真实位姿,但只用于第一帧
-    void SetRealPose(ORB_SLAM2::Frame* pFrame);
+    void SetRealPose();
 
     // 只要导入PlaneExtractor这个库, 就会报错
     // #include <src/plane/PlaneExtractor.h>

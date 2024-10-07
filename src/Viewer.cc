@@ -256,7 +256,7 @@ void Viewer::Run()
 //        double scale = float(w) / im.size().width;
 //        cv::Mat scaled_im;
 //        cv::resize(im, scaled_im, cv::Size(0, 0), scale, scale);
-        cv::imshow("QSP-SLAM: Current Frame", im);
+        cv::imshow("QSP-SLAM: Current Frame CV", im);
         cv::waitKey(mT);
 
         if(menuPause) {
