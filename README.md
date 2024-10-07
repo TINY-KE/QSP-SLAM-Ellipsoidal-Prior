@@ -3,18 +3,22 @@
     + 补充freiburg_001.yaml和config_freiburg_001.json
     + 将get_frame_by_name 改回 get_frame_by_id
 
-# 恢复单目
+# 显示原点大球 commit 962c1b35539d0e164a0c9efd979f18741a8ca28e
     + 目前用的汽车检测结果，用的是左上角第一个，改为 同类型的正中心的。修改yaml和json中的图片宽度和高度。
     + 修改yaml中的物体yoloclass和DecoderPaths
-    + 在localmapping中，根据.attr("reconstruct_object")寻找
-    + 数据关联到了第一个物体
-    + 
-
-    +  修改了的参数：
+    + sdf模型创建失败： 通过在localmapping中根据.attr("reconstruct_object")寻找，可知是数据关联失败，当前使用的是李建的拖球体数据关联，改回dsp的数据关联。修改方法——修改yaml中的参数：
         System.UseEllipsoldPoseForDSP.Open: 0
         CreateSingleObject: 1
         Tracking.AssociateObjectWithEllipsold: 0
+    + 添加setrealpose和[改进] [位姿真值] ， 将相机和point转移到真实世界坐标系下。
+    + 修改InferObjectsWithSemanticPrior， 在pangolin中显示原点大球
+
+# sa
+    + 添加地平面 mpTracker->SetGroundPlaneMannually(Vector4d(0,  0,   1,  0));
+    + 修改InferObjectsWithSemanticPrior， 生成地面上的椭球
     + 
+
+    + 待： 汽车目前是底朝天，原因应该是在聚类时，修改了算法。
 
 # Ellipsoids 和 Ellipsoids Objects 的区别
     + GetAllEllipsoids() GetAllEllipsoidsVisual()  <--->  GetAllEllipsoidsObjects()
