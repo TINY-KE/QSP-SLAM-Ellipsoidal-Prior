@@ -184,9 +184,9 @@ Dataset.Path.PriTable: "./config/pritable.txt"
 SemanticPrior.PriorD: 1
 SemanticPrior.PriorE: 1
 # Prior weight
-SemanticPrior.Weight: 0.01
+# SemanticPrior.Weight: 0.01
 # Ground Plane Contrain weight
-SemanticPrior.GroundWeight: 20
+# SemanticPrior.GroundWeight: 2
 
 # deg
 Optimizer.Edges.3DConstrain.PlaneAngle.Sigma: 100
@@ -384,4 +384,17 @@ Tworld_camera.qz:  0.430
 # Tworld_camera.qy: -0.500
 # Tworld_camera.qz:  0.500
 
+OptimizeEllipsoidWithMultiPlanes.gap: 30
+OptimizeEllipsoidWithMultiPlanes.debug_init_guess: 4
 
+OptimizeEllipsoidWithMultiPlanes.dis_thresh_near: 0.7
+OptimizeEllipsoidWithMultiPlanes.dis_thresh_far: 2.5
+SemanticPrior.useFar_vertical: 1
+SemanticPrior.useFar: 1
+SemanticPrior.useNear_vertical: 1
+SemanticPrior.useNear: 1
+frame_by_frame_zhjd: 0
+SemanticPrior.usePrior: 1
+SemanticPrior.Weight: 0.1
+SemanticPrior.GroundWeight: 1
+optimizeEllipsoidWithMultiPlanes.optimizeEllipsoidWithMultiPlanes: 1

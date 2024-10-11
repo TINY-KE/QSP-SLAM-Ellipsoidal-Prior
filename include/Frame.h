@@ -86,6 +86,7 @@ public:
     int instance_id;    // associated object instance id
     Observation ob_2d;
     Observation3D ob_3d;
+    std::vector<MapPoint*> mvpObjectPoints;
 };
 typedef std::vector<Measurement> Measurements;
 

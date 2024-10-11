@@ -13,18 +13,74 @@
     + 添加setrealpose和[改进] [位姿真值] ， 将相机和point转移到真实世界坐标系下。
     + 修改InferObjectsWithSemanticPrior， 在pangolin中显示原点大球
 
-# 实现了MonocularInfer，但是在车头观测时不够长
+# 实现了MonocularInfer，但是在车头观测时不够长 commit a90770336d0c0051818f5265f85c6824f936d1a4
     + 添加地平面 mpTracker->SetGroundPlaneMannually(Vector4d(0,  0,   1,  0));
     + 修改InferObjectsWithSemanticPrior， 生成地面上的椭球
     + GenerateInitGuess用的是世界坐标系下的地面
 
-# 
-    + 待： 往一个拖球体中不断添加平面。
+# 实现了单帧的椭球体粗略估计，可用于物体预测。
+    + 编写MonocularInferWithNearFarPlane，
+    + 将Tracking::GenerateObservationStructure(ORB_SLAM2::Frame* pFrame)， 统一到SetObservations(pKF); 并将获取的物体内3D点，存到measure中
+    + 提取远近平面，并用于椭球体粗略估计
+    + 通过useFar_vertical, useNear_vertical 等选项，控制远近平面的生成方法
 
+
+# 提高点云聚类的阈值，从而使得dsp效果变差
     + 待： 汽车目前是底朝天，原因应该是在聚类时，修改了算法。
 
 
-# 
+    + 待： 往一个拖球体中不断添加平面。
+    通过GenerateInitGuess(bbox, ground_pl_local.param);
+
+
+
+
+
+
+
+
+
+# 利用地平面和多帧bbox平面，生成椭球体
+    + 将单帧bbox平面从相机坐标系转移到世界坐标系，并通过可视化，验证了准确性
+    + 将平面从世界坐标系转移到当前帧的相机坐标系
+    + 编写optimizeEllipsoidWithMultiPlanes，实现利用地平面和多帧bbox平面，生成椭球体
+    
+    + 问题： 物体问题很多，是不是可以通过PlaneNormal的方式 解决这个问题
+    
+    + 今晚（1）检查bbox生成的平面有没有normal
+            （2）给平面添加 角度限制，可以先通过50帧添加一次bbox平面，试试。
+
+    + 
+        /*
+        *   [新版本] 基于切平面完成椭球体的全局优化!
+        *   10-4 Ours 论文发表使用的版本。
+        */
+        void Optimizer::OptimizeWithDataAssociationUsingMultiplanes(std::vector<Frame *> &pFrames,
+    
+
+# 平面法向量的计算
+    Vector3d normal = (p1-p0).cross(p2-p1);
+
+
+
+# 平面的提取与转换
+    //相机坐标系下的地面
+    pPlaneExtractor->extractGroundPlane(depth, groundPlane);
+
+    // 设置世界地平面
+    groundPlane.transform(Twc);   // transform to the world coordinate.
+    mGroundPlane = groundPlane;
+    mGroundPlane.color = Eigen::Vector3d(0.0,0.8,0.0); 
+    mGroundPlane.InitFinitePlane(Twc.translation(), 10);
+    mpMap->addPlane(&mGroundPlane);
+
+# 椭球体生成中 平面的转换
+    g2o::plane ground_pl_local = mGroundPlane;   //世界坐标系下的
+    ground_pl_local.transform(pFrame->cam_pose_Tcw);   //相机坐标系下的
+
+# bbox转mvCPlanes
+    + GenerateConstrainPlanesOfBbox(bbox, mCalib, mRows, mCols)
+    + 
 
 # Ellipsoids 和 Ellipsoids Objects 的区别
     + GetAllEllipsoids() GetAllEllipsoidsVisual()  <--->  GetAllEllipsoidsObjects()

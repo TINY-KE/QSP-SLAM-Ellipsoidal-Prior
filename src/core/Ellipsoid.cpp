@@ -639,22 +639,27 @@ namespace g2o
 
     std::vector<g2o::plane*> ellipsoid::GetCubePlanes()
     {
+        // 根据初始椭球体的pose和scale， 计算 3D 盒子的角点（即顶点）。
         Matrix3Xd mPoints = compute3D_BoxCorner();
+
+        // 每一列表示一组三个点的 ID，这些 ID 将用于定义三角形平面。
+        // 这些 ID 将用于从 mPoints 中提取 3 个顶点，以定义每个平面。
         Matrix3Xd mIds; mIds.resize(3, 6);
         // 注意： 该 id 从1开始计数！
         mIds << 1, 5, 1, 3, 6, 8,
                 2, 8, 5, 7, 7, 5,
                 3, 7, 6, 8, 3, 1;
         
+        // 循环构建平面
         std::vector<g2o::plane*> planes;
         for( int i=0;i<6;i++)
         {
             Vector3d p0 = mPoints.col(mIds(0,i)-1);
             Vector3d p1 = mPoints.col(mIds(1,i)-1);
             Vector3d p2 = mPoints.col(mIds(2,i)-1);
-
+            // 这个平面的中心
             Vector3d center = (p0+p2)/2.0;
-
+            // 平面的法向量
             Vector3d normal = (p1-p0).cross(p2-p1);
             g2o::plane* plane = new g2o::plane();
             plane->fromPointAndNormal(center, normal);

@@ -45,24 +45,31 @@ namespace ORB_SLAM2
         g2o::ellipsoid infer(g2o::ellipsoid &e, const Pri &pri, double weight, g2o::plane& plane_ground);
 
         g2o::ellipsoid MonocularInfer(g2o::ellipsoid &e, const Pri &pri, double weight, g2o::plane& plane_ground);
+        g2o::ellipsoid MonocularInferWithNearFarPlane(g2o::ellipsoid &e, const Pri &pri, double weight, g2o::plane& plane_ground, std::vector<g2o::plane> &planesNearFar);
+
         g2o::ellipsoid GenerateInitGuess(Vector4d& bbox, const Vector4d& plane_local);
 
         double GetLastCost();
         g2o::ellipsoid MonocularInferExpand(g2o::ellipsoid &e, const Pri &pri, double weight, g2o::plane& plane_ground);
         std::vector<g2o::ellipsoid> GetAllPossibleEllipsoids();
 
-    private:
-
+    public:
         // ground_plane_weight: 仅仅在单目情况下激活，默认将第一个planes添加权重。
         g2o::ellipsoid optimizeEllipsoidWithPlanesAndPrior(const g2o::ellipsoid &init_guess, std::vector<g2o::plane> &planes,
                                                        std::vector<g2o::plane> &planesWithNormal, const Pri &pri, double weight, double ground_plane_weight = -1);
 
+    private:
+        
 
         int mCols, mRows;
         Matrix3d mCalib;
 
         double mdCost;
         std::vector<g2o::ellipsoid> mvePossibleEllipsoids;
+
+    // zhjd  利用多帧观测实现
+    public:
+        g2o::ellipsoid optimizeEllipsoidWithMultiPlanes(const g2o::ellipsoid &init_guess, std::vector<g2o::plane> &planes, const Pri &pri);
     };
 
     // 2 degrees

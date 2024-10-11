@@ -208,6 +208,12 @@ protected:
 
     std::vector<ellipsoid*> mspEllipsoidsObservation;
     std::vector<Boundingbox*> mvBoundingboxes;
+
+    // zhjd
+    std::set<plane*> mspEllipsoidPlanes;
+    void addEllipsoidPlane(plane* pPlane, int visual_group = 0);
+    std::vector<plane*> GetAllEllipsoidPlanes();
+    void clearEllipsoidPlanes();
 };
 
 } //namespace ORB_SLAM

@@ -248,6 +248,36 @@ namespace ORB_SLAM2
         return optimizeEllipsoidWithPlanesAndPrior(e, planes, planesWithNormal, pri, weight, ground_weight);
     }
 
+    g2o::ellipsoid priorInfer::MonocularInferWithNearFarPlane(g2o::ellipsoid &e, const Pri &pri, double weight, g2o::plane& plane_ground, std::vector<g2o::plane> &planesNearFar)
+    {
+        std::vector<g2o::plane> planes;
+        std::vector<g2o::plane> planesWithNormal;
+
+        // 已有地平面旋转约束： 2
+
+        // 地平面相切约束： 1
+        planes.push_back(plane_ground);
+
+        // 还需要传入 bbox. x4
+        int bbox_planes_num = e.mvCPlanes.size();
+        std::vector<g2o::plane> planes_bbox; planes_bbox.resize(bbox_planes_num);
+        for(int i=0;i<bbox_planes_num;i++){
+            auto pCP = e.mvCPlanes[i];
+            if(pCP)
+                if(pCP->pPlane)
+                    planes_bbox[i] = *(pCP->pPlane);
+        }
+        planes.insert(planes.end(), planes_bbox.begin(), planes_bbox.end());
+        planes.insert(planes.end(), planesNearFar.begin(), planesNearFar.end());
+
+        // 比例约束 x2 in Pri
+        std::cout << " Monocular Plane Num : " << planes.size() << std::endl;
+
+        double ground_weight = Config::ReadValue<double>("SemanticPrior.GroundWeight");
+        std::cout << "Ground Plane Weight : " << ground_weight << std::endl;
+        return optimizeEllipsoidWithPlanesAndPrior(e, planes, planesWithNormal, pri, weight, ground_weight);
+    }
+
     // Expand: 考虑多种可能性做初始化
     g2o::ellipsoid priorInfer::MonocularInferExpand(g2o::ellipsoid &e, const Pri &pri, double weight, g2o::plane& plane_ground)
     {
@@ -432,6 +462,107 @@ namespace ORB_SLAM2
 
         return vEllipsoid->estimate();
     }
+
+
+    g2o::ellipsoid priorInfer::optimizeEllipsoidWithMultiPlanes(const g2o::ellipsoid &init_guess, std::vector<g2o::plane> &planes, const Pri &pri)
+    {
+        double ground_plane_weight = Config::ReadValue<double>("SemanticPrior.GroundWeight");
+        std::cout << "Ground Plane Weight : " << ground_plane_weight << std::endl;
+        
+        // 基本参数的读取
+        double config_plane_angle_sigma = Config::Get<double>("Optimizer.Edges.3DConstrain.PlaneAngle.Sigma");
+        bool bUseGroundPlaneWeight = true;  // 请将地平面放在平面约束的第一个！
+
+        // 基本配置： 是否使用的是单目版本
+        // Debug: 取消单目版本.
+        // bool bMonocularVersion = (ground_plane_weight > 0);
+        // bool bMonocularVersion = false;
+
+        // 做g2o优化，直到 cost function 最小
+
+        // initialize graph optimization.
+        g2o::SparseOptimizer graph;
+        g2o::BlockSolverX::LinearSolverType *linearSolver;
+        linearSolver = new g2o::LinearSolverDense<g2o::BlockSolverX::PoseMatrixType>();
+        g2o::BlockSolverX *solver_ptr = new g2o::BlockSolverX(linearSolver);
+        g2o::OptimizationAlgorithmLevenberg *solver = new g2o::OptimizationAlgorithmLevenberg(solver_ptr);
+        graph.setAlgorithm(solver);
+        graph.setVerbose(false); // Set output.
+
+        // 添加椭球体
+        // Add objects vertices
+        g2o::VertexEllipsoidXYZABCYaw *vEllipsoid;
+
+        // 注意单目版本和非单目版本区别
+        // if(bMonocularVersion)
+        //     vEllipsoid = new g2o::VertexEllipsoidXYABHeightYaw();
+        // else 
+        //     vEllipsoid = new g2o::VertexEllipsoidXYZABCYaw();
+        vEllipsoid = new g2o::VertexEllipsoidXYZABCYaw();
+        vEllipsoid->setEstimate(init_guess);
+        vEllipsoid->setId(graph.vertices().size());
+        vEllipsoid->setFixed(false);
+        graph.addVertex(vEllipsoid);
+
+        // 添加约束
+        // 这里的平面与椭球体已经位于同一个坐标系，所以创建一个单位变换作为SE3
+        g2o::VertexSE3Expmap *vSE3 = new g2o::VertexSE3Expmap();
+        vSE3->setId(graph.vertices().size());
+        vSE3->setEstimate(g2o::SE3Quat()); // Identity
+        vSE3->setFixed(true);
+        graph.addVertex(vSE3);
+
+        //  无normal 边约束, 包括地面
+        for (int i = 0; i < planes.size(); i++)
+        {
+            g2o::EdgeSE3EllipsoidPlane *pEdge = new g2o::EdgeSE3EllipsoidPlane;
+            pEdge->setId(graph.edges().size());
+            pEdge->setVertex(0, dynamic_cast<g2o::OptimizableGraph::Vertex *>(vSE3));
+            pEdge->setVertex(1, dynamic_cast<g2o::OptimizableGraph::Vertex *>(vEllipsoid));
+            pEdge->setMeasurement(planes[i].param);
+
+            pEdge->setNormalDirection(true);   // 要求被约束的椭球体在平面的法向量方向，防止其出现在地面下方或相机后方。
+
+            double pl_weight = 1;
+            if(bUseGroundPlaneWeight && i==0) pl_weight = ground_plane_weight;
+            Matrix<double, 1, 1> inv_sigma;
+            inv_sigma << 1 * pl_weight;
+            MatrixXd info = inv_sigma.cwiseProduct(inv_sigma).asDiagonal();
+            pEdge->setInformation(info);
+            pEdge->setRobustKernel(new g2o::RobustKernelHuber());
+
+            graph.addEdge(pEdge);
+        }
+         // 添加先验约束
+        bool usePrior = Config::ReadValue<double>("SemanticPrior.usePrior");
+        double weight = Config::ReadValue<double>("SemanticPrior.Weight");
+        if(usePrior){
+            EdgePri *pEdgePri = new EdgePri;
+            pEdgePri->setId(graph.edges().size());
+            pEdgePri->setVertex(0, vEllipsoid);
+            pEdgePri->setMeasurement(pri);
+            Vector2d inv_sigma;
+            inv_sigma << 1, 1;
+            inv_sigma = inv_sigma * weight;
+            MatrixXd info = inv_sigma.cwiseProduct(inv_sigma).asDiagonal();
+            pEdgePri->setInformation(info);
+            graph.addEdge(pEdgePri);
+        }
+
+        // 开始优化
+        int num_opt = 10;
+        std::cout << "Begin Optimization of ellipsoid with prior... x " << num_opt << std::endl;
+        std::cout << " - Plane Num : " << planes.size() << std::endl;
+        graph.initializeOptimization();
+        graph.optimize( num_opt );  //optimization step
+        std::cout << "Optimization done." << std::endl;
+
+        // 保存最终 cost 
+        mdCost = graph.chi2();
+
+        return vEllipsoid->estimate();
+    }
+
 
     // 边的计算
     void EdgePri::computeError()

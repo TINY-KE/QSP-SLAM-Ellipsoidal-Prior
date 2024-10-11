@@ -71,6 +71,8 @@
         "variant": "cpp",
         "bit": "cpp",
         "core": "cpp",
-        "specialfunctions": "cpp"
+        "specialfunctions": "cpp",
+        "alignedvector3": "cpp",
+        "fft": "cpp"
     }
 }

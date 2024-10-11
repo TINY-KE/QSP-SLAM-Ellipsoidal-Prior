@@ -260,9 +260,9 @@ void Tracking::GetObjectDetectionsMono(KeyFrame *pKF)
 
         mvImObjectMasks.push_back(std::move(mask_cv));
         mvImObjectBboxs.push_back({x1,y1,x2,y2});
-        std::cout<< " [zhjd-debug] bbox: " << "x1:"<<x1 
-            << ", y1:" << y1 << ", x2:" << x2 << ", y2:" << y2
-            << std::endl;
+        // std::cout<< " [zhjd-debug] bbox: " << "x1:"<<x1 
+        //     << ", y1:" << y1 << ", x2:" << x2 << ", y2:" << y2
+        //     << std::endl;
             
         // get 2D feature points inside mask
         for (int i = 0; i < pKF->mvKeys.size(); i++)
@@ -684,11 +684,8 @@ void Tracking::UpdateObjectObservation_GenerateEllipsoid(ORB_SLAM2::Frame *pFram
     // [6] 补充调试环节： 测试语义先验对物体的影响
     else
     {
-        // [zhjd] 将std::vector<ObjectDetection*>结构的mvpDetectedObjects 转为 Eigen::MatrixXd结构的mmObservations
-        pFrame->SetObservations(pKF);  
 
-        // 将Eigen::MatrixXd结构  转为 Measurement结构
-        GenerateObservationStructure(pFrame);   // 注意必须生成 measure 结构才能 Infer
+        pFrame->SetObservations(pKF);  
 
         // const string priconfig_path = Config::Get<std::string>("Dataset.Path.PriTable");
         // bool bUseInputPri = (priconfig_path.size() > 0);
@@ -696,7 +693,6 @@ void Tracking::UpdateObjectObservation_GenerateEllipsoid(ORB_SLAM2::Frame *pFram
 
         InferObjectsWithSemanticPrior(pFrame, false, use_infer_detection);   // 使用 1:1:1 的比例初始化
 
-        GenerateObservationStructure(pFrame);
     }
 
     // // Output running time
@@ -1462,6 +1458,8 @@ void Tracking::GenerateObservationStructure(ORB_SLAM2::Frame* pFrame)
         m.ob_3d = ob_3d;
         pFrame->meas.push_back(m);
     }
+
+    
 }
 
 std::vector<Frame*> Tracking::GetAllFramesWithKeyframe()

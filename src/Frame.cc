@@ -723,6 +723,8 @@ cv::Mat Frame::UnprojectStereo(const int &i)
 }
 
 bool Frame::SetObservations(KeyFrame* pKF){
+    
+    // 1. 将std::vector<ObjectDetection*>结构的mvpDetectedObjects 转为 Eigen::MatrixXd结构的mmObservations
     std::vector<ObjectDetection*> obj_dets = pKF->GetObjectDetections();
     int num_det = obj_dets.size();
     std::cout << "num_det = " << num_det << std::endl;
@@ -740,6 +742,47 @@ bool Frame::SetObservations(KeyFrame* pKF){
         mmObservations.row(i) = mdet;
     }   
 
+    // 2.读取物体mmObservations，转换为 Measurement，   修改为  包含3d地图点的Measurement
+    Eigen::MatrixXd &obs_mat = mmObservations;
+
+    for( int i = 0; i < num_det; i++)
+    {
+        Eigen::VectorXd det_vec = obs_mat.row(i);  // id x1 y1 x2 y2 label rate imageID
+        int label = round(det_vec(5));
+        Eigen::Vector4d bbox = Eigen::Vector4d(det_vec(1), det_vec(2), det_vec(3), det_vec(4));
+
+        Observation ob_2d;
+        ob_2d.label = label;
+        ob_2d.bbox = bbox;
+        ob_2d.rate = det_vec(6);
+        ob_2d.pFrame = this;
+
+        Observation3D ob_3d;
+        ob_3d.pFrame = this;
+        // ob_3d.pObj = pLocalObjects[i];
+
+
+        Measurement m;
+        m.measure_id = i;
+        m.instance_id = -1; // not associated
+        m.ob_2d = ob_2d;
+        m.ob_3d = ob_3d;
+        meas.push_back(m);
+    }
+
+
+    // 3. zhjd： 获取物体内包含的3D点，存到measure中
+    auto mvpMapPoints = pKF->GetMapPointMatches();
+    for (int d_i = 0; d_i < num_det; d_i++)
+    {
+        auto detKF1 = obj_dets[d_i];
+        for (int k_i : detKF1->GetFeaturePoints()) {
+                auto pMP = mvpMapPoints[k_i];
+                meas[d_i].mvpObjectPoints.push_back(pMP);
+        }
+    }
+    // end
+    
     return true;
 }
 

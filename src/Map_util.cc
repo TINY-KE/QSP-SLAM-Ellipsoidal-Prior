@@ -349,4 +349,25 @@ void Map::ShowMapInfo()
     std::cout << obj_num << " objects" << std::endl;
 }
 
+/**
+ * EllipsoidPlane
+ */
+
+void Map::addEllipsoidPlane(plane *pPlane, int visual_group) {
+    unique_lock<mutex> lock(mMutexMap);
+    pPlane->miVisualGroup = visual_group;
+    mspEllipsoidPlanes.insert(pPlane);
+}
+
+vector<plane *> Map::GetAllEllipsoidPlanes() {
+    unique_lock<mutex> lock(mMutexMap);
+    return vector<plane *>(mspEllipsoidPlanes.begin(), mspEllipsoidPlanes.end());
+}
+
+void Map::clearEllipsoidPlanes() {
+    unique_lock<mutex> lock(mMutexMap);
+    mspEllipsoidPlanes.clear();
+}
+
+
 } // namespace ORB_SLAM2
