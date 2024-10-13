@@ -73,6 +73,7 @@
         "core": "cpp",
         "specialfunctions": "cpp",
         "alignedvector3": "cpp",
-        "fft": "cpp"
+        "fft": "cpp",
+        "tensorsymmetry": "cpp"
     }
 }

@@ -93,11 +93,12 @@ public:
     KeyFrame* mpLastKeyFrame;
     std::list<MapObject*> mlpRecentAddedMapObjects;
     void GetNewObservations();
-    void CreateNewMapObjects();
+    void CreateNewMapObjects_stereo();
     void MapObjectCulling();
     void CreateNewObjectsFromDetections();
     void AssociateObjects3D();
     void ProcessDetectedObjects();
+    void ProcessDetectedObjects_origin();
 
     void GlobalOptimization();
 

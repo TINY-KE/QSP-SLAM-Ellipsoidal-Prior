@@ -398,3 +398,6 @@ SemanticPrior.usePrior: 1
 SemanticPrior.Weight: 0.1
 SemanticPrior.GroundWeight: 1
 optimizeEllipsoidWithMultiPlanes.optimizeEllipsoidWithMultiPlanes: 1
+
+ComputeCuboidPCA.scale: 0.8    #1.2 官方
+ComputeCuboidPCA.outlierDistance: 0.8   #1.0 官方

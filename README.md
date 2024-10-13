@@ -18,14 +18,30 @@
     + 修改InferObjectsWithSemanticPrior， 生成地面上的椭球
     + GenerateInitGuess用的是世界坐标系下的地面
 
-# 实现了单帧的椭球体粗略估计，可用于物体预测。
+# 实现了单帧的椭球体粗略估计，可用于物体预测。 commit 4e60e11ccc56c74a8a3dc8215ad056237c1c1b6a 
     + 编写MonocularInferWithNearFarPlane，
     + 将Tracking::GenerateObservationStructure(ORB_SLAM2::Frame* pFrame)， 统一到SetObservations(pKF); 并将获取的物体内3D点，存到measure中
     + 提取远近平面，并用于椭球体粗略估计
     + 通过useFar_vertical, useNear_vertical 等选项，控制远近平面的生成方法
 
 
-# 提高点云聚类的阈值，从而使得dsp效果变差
+# 提高点云聚类的阈值，从而使得dsp效果变差  
+    + 恢复单目中原本的物体reconstruct函数 ProcessDetectedObjects_origin()
+    + 提高聚类的严格标准1：  修改ComputeCuboidPCA.scale 为0.8
+    + 提高聚类的严格标准2：  RemoveOutliersSimple();
+    + 
+    + reconstruct_object中用到的 Sim3Two 怎么计算的
+        auto Sim3Two_pMO = pMO->Sim3Two;
+        理解：
+        Eigen::Matrix4f Sim3Two = SE3Twc * Sim3Tco;
+
+    + PCA 方法没变？
+        ComputeCuboidPCA(numKFsPassedSinceInit < 15);
+    + 提高聚类阈值1
+    std::cout << "RemoveOutliersModel" << std::endl;
+            pMO->RemoveOutliersModel();
+    + 提高阈值2
+        RemoveOutliersSimple();
     + 待： 汽车目前是底朝天，原因应该是在聚类时，修改了算法。
 
 

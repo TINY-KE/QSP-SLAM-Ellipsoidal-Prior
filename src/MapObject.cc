@@ -301,11 +301,12 @@ void MapObject::RemoveOutliersSimple()
 
     // Second pass, remove obvious outliers
     // 距离大于1m则直接过滤
+    double outlierDistance = Config::ReadValue<double>("ComputeCuboidPCA.outlierDistance");
     x3D_mean /= n_pts;
     for (auto pMP : GetMapPointsOnObject())
     {
         Eigen::Vector3f x3Dw = Converter::toVector3f(pMP->GetWorldPos());
-        if ((x3Dw - x3D_mean).norm() > 1.0)
+        if ((x3Dw - x3D_mean).norm() > outlierDistance)
         {
             this->EraseMapPoint(pMP);
         }
@@ -357,6 +358,32 @@ void MapObject::RemoveOutliersModel()
     }
 }
 
+
+void GetRPYFromRotationMatrix(const Eigen::Matrix3f& R)
+{
+    // 提取旋转矩阵的元素
+    float r11 = R(0, 0);
+    float r12 = R(0, 1);
+    float r13 = R(0, 2);
+    float r21 = R(1, 0);
+    float r31 = R(2, 0);
+    float r32 = R(2, 1);
+    float r33 = R(2, 2);
+    
+    // 计算yaw (绕Z轴的旋转)
+    float yaw = std::atan2(r21, r11);
+    
+    // 计算pitch (绕Y轴的旋转)
+    float pitch = std::atan2(-r31, std::sqrt(r32 * r32 + r33 * r33));
+    
+    // 计算roll (绕X轴的旋转)
+    float roll = std::atan2(r32, r33);
+    
+    // 输出结果
+    std::cout << "Roll: "  << roll  << " radians (" << roll * 180.0 / M_PI << " degrees)" << std::endl;
+    std::cout << "Pitch: " << pitch << " radians (" << pitch * 180.0 / M_PI << " degrees)" << std::endl;
+    std::cout << "Yaw: "   << yaw   << " radians (" << yaw * 180.0 / M_PI << " degrees)" << std::endl;
+}
 
 void MapObject::ComputeCuboidPCA(bool updatePose)
 {
@@ -411,8 +438,14 @@ void MapObject::ComputeCuboidPCA(bool updatePose)
     auto neg_y = Eigen::Vector3f(0.f, -1.f, 0.f);
     if (neg_y.dot(R.col(1)) < 0)
     {
-        R.col(0) = -R.col(0);
-        R.col(1) = -R.col(1);
+        // R.col(0) = -R.col(0);
+        // R.col(1) = -R.col(1);
+        Eigen::Matrix3f Rx;
+        float angle = M_PI;  
+        Rx << 1, 0, 0,
+            0, std::cos(angle), -std::sin(angle),
+            0, std::sin(angle), std::cos(angle);
+        R = R*Rx;
     }
 
     int lo = int (0.05 * N);  // percentile threshold
@@ -437,7 +470,8 @@ void MapObject::ComputeCuboidPCA(bool updatePose)
     // Remove outliers using computed PCA box
     // 使用PCA包围盒过滤外点
     int num_outliers = 0;
-    float s = 1.2;
+    // float s = 1.2;
+    double s = Config::ReadValue<double>("ComputeCuboidPCA.scale");
     for (auto pMP : mvpMapPoints)
     {
         if (!pMP)
@@ -464,6 +498,7 @@ void MapObject::ComputeCuboidPCA(bool updatePose)
     if (updatePose)
     {
         Eigen::Matrix4f Two = Eigen::Matrix4f::Identity();
+        // GetRPYFromRotationMatrix(R);
         Two.topLeftCorner(3, 3) = 0.40 * l * R;
         // cout << R.determinant() << " " << endl;
         // cout << pow(T.topLeftCorner(3, 3).determinant(), 1./3) << endl;
@@ -494,6 +529,7 @@ g2o::ellipsoid* MapObject::GetEllipsold()
 
 void MapObject::SetPoseByEllipsold(g2o::ellipsoid* e)
 {
+    std::cout<<"[zhjd-debug] SetPoseByEllipsold"<<std::endl;
     Eigen::Matrix4f Two;
 
     {

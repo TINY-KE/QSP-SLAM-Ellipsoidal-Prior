@@ -515,7 +515,7 @@ namespace ORB_SLAM2 {
                 e_init_guess_1->setColor(Vector3d(0.2,0.2,0.2));
                 std::cout<<"[InferObjectsWithSemanticPrior] 2 结束 初始化一个椭球体,Scale: "<< e_init_guess_1->scale.transpose() <<std::endl;
                 mpMap->ClearEllipsoidsVisual(); 
-                mpMap->addEllipsoidVisual(e_init_guess_1); // 可视化
+                // mpMap->addEllipsoidVisual(e_init_guess_1); // 可视化
             
                 std::vector<g2o::plane*> planes_world;
                 

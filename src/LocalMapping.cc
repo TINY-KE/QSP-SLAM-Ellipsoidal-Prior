@@ -158,7 +158,7 @@ bool LocalMapping::RunOneTime()
             // 对最近的地图物体进行剔除: 对 mlpRecentAddedMapObjects 进行剔除操作
             MapObjectCulling();
             // 创建新的地图物体：
-            CreateNewMapObjects();
+            CreateNewMapObjects_stereo();
         }
         else if (mpTracker->mSensor == System::MONOCULAR)
         {
@@ -171,7 +171,8 @@ bool LocalMapping::RunOneTime()
                     CreateNewObjectsFromDetections();
                 // reconstruction
                 // todo: 物体相关操作 4，处理检测到的物体
-                ProcessDetectedObjects();
+                // ProcessDetectedObjects();
+                ProcessDetectedObjects_origin();
             }
         }
         // KEY: [LocalMapping] 此处进行新物体创建、已检测物体处理和地图更新
@@ -245,7 +246,7 @@ bool LocalMapping::RunOneTime()
             // Check redundant local Keyframes
             KeyFrameCulling();
         }
-        // CreateNewMapObjects();
+        // CreateNewMapObjects_stereo();
 
         if (mpLoopCloser)
             mpLoopCloser->InsertKeyFrame(mpCurrentKeyFrame);
