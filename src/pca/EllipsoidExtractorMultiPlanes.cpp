@@ -12,7 +12,7 @@
 
 namespace ORB_SLAM2 {
 void VisualizeConstrainPlanes(g2o::ellipsoid &e_local, g2o::SE3Quat &Twc, Map *pMap) {
-    std::vector<g2o::ConstrainPlane *> &vCPlanes = e_local.mvCPlanes;
+    std::vector<g2o::ConstrainPlane *> &vCPlanes = e_local.mvCPlanesInCamera;
     g2o::ellipsoid e_global = e_local.transform_from(Twc);
     Vector3d center = e_global.pose.translation();
     int planeNum = vCPlanes.size();

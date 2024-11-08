@@ -8,12 +8,12 @@ set(CMAKE_CXX_STANDARD 17)
 # 关闭所有warning
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w")
 
-# SET(CMAKE_BUILD_TYPE Release)
-SET(CMAKE_BUILD_TYPE Debug)
-
 IF(NOT CMAKE_BUILD_TYPE)
     SET(CMAKE_BUILD_TYPE Release)
 ENDIF()
+
+SET(CMAKE_BUILD_TYPE Release)
+# SET(CMAKE_BUILD_TYPE Debug)
 
 MESSAGE("Build type: " ${CMAKE_BUILD_TYPE})
 
@@ -200,8 +200,8 @@ target_link_libraries(qsp_slam_rgbd ${PROJECT_NAME})
 # target_link_libraries(label_tool ${PROJECT_NAME})
 
 
-add_executable(pcd2bin src/tools/pcd2bin.cc)
-target_link_libraries(pcd2bin ${PROJECT_NAME})
+#add_executable(pcd2bin src/tools/pcd2bin.cc)
+#target_link_libraries(pcd2bin ${PROJECT_NAME})
 
 # add modules
 add_subdirectory(src/dense_builder)

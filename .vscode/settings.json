@@ -74,6 +74,7 @@
         "specialfunctions": "cpp",
         "alignedvector3": "cpp",
         "fft": "cpp",
-        "tensorsymmetry": "cpp"
+        "tensorsymmetry": "cpp",
+        "numericaldiff": "cpp"
     }
 }

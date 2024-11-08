@@ -196,11 +196,12 @@ System::System(const string &strVocFile, const string &strSettingsFile, const st
 
     mbMapInSameThread = 0;
     if(fSettings["System.LocalMappingInSameThread"].isNamed()) {
-        int MapInSameThread = fSettings["System.mode"];
-        mbMapInSameThread = MapInSameThread;
+        // int MapInSameThread = fSettings["System.mode"];
+        // mbMapInSameThread = MapInSameThread;
+        mbMapInSameThread = fSettings["System.LocalMappingInSameThread"];
     }
 
-    if (!mbMapInSameThread) {
+    if (!mbMapInSameThread) {  //单目模式
         mptLocalMapping = new thread(&ORB_SLAM2::LocalMapping::Run, mpLocalMapper);
     }
     else {

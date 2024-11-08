@@ -230,10 +230,10 @@ namespace ORB_SLAM2
         planes.push_back(plane_ground);
 
         // 还需要传入 bbox. x4
-        int bbox_planes_num = e.mvCPlanes.size();
+        int bbox_planes_num = e.mvCPlanesInCamera.size();
         std::vector<g2o::plane> planes_bbox; planes_bbox.resize(bbox_planes_num);
         for(int i=0;i<bbox_planes_num;i++){
-            auto pCP = e.mvCPlanes[i];
+            auto pCP = e.mvCPlanesInCamera[i];
             if(pCP)
                 if(pCP->pPlane)
                     planes_bbox[i] = *(pCP->pPlane);
@@ -259,10 +259,10 @@ namespace ORB_SLAM2
         planes.push_back(plane_ground);
 
         // 还需要传入 bbox. x4
-        int bbox_planes_num = e.mvCPlanes.size();
+        int bbox_planes_num = e.mvCPlanesInCamera.size();
         std::vector<g2o::plane> planes_bbox; planes_bbox.resize(bbox_planes_num);
         for(int i=0;i<bbox_planes_num;i++){
-            auto pCP = e.mvCPlanes[i];
+            auto pCP = e.mvCPlanesInCamera[i];
             if(pCP)
                 if(pCP->pPlane)
                     planes_bbox[i] = *(pCP->pPlane);
@@ -513,7 +513,7 @@ namespace ORB_SLAM2
         graph.addVertex(vSE3);
 
         //  无normal 边约束, 包括地面
-        for (int i = 0; i < planes.size(); i++)
+        for (int i = 0; i <    planes.size(); i++)
         {
             g2o::EdgeSE3EllipsoidPlane *pEdge = new g2o::EdgeSE3EllipsoidPlane;
             pEdge->setId(graph.edges().size());

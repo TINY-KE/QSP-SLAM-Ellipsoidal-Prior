@@ -1202,7 +1202,7 @@ void Optimizer::OptimizeWithDataAssociationUsingMultiplanes(std::vector<Frame *>
             auto vEllipsoid = vEllipsoidVertexMaps[instance];
             auto vSE3 = vSE3Vertex[frame_index];
 
-            std::vector<g2o::ConstrainPlane*> vCPlanes = pObj_ob->mvCPlanes;
+            std::vector<g2o::ConstrainPlane*> vCPlanes = pObj_ob->mvCPlanesInCamera;
             // MatrixXd mPlanesParam = pObj_ob->cplanes;
             int plane_num = vCPlanes.size();
 

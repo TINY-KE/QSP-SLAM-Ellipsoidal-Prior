@@ -258,7 +258,7 @@ namespace g2o
 
         this->prob = e.prob;
         // this->cplanes = e.cplanes;
-        this->mvCPlanes = e.mvCPlanes;
+        this->mvCPlanesInCamera = e.mvCPlanesInCamera;
         this->mvCPlanesWorld = e.mvCPlanesWorld;
 
         this->bbox = e.bbox;
@@ -674,16 +674,16 @@ namespace g2o
 
     void ellipsoid::addConstrainPlanes(std::vector<ConstrainPlane*>& vCPlanes)
     {
-        mvCPlanes = vCPlanes;
+        mvCPlanesInCamera = vCPlanes;
         NormalizeConstrainPlanes();
     }
 
     void ellipsoid::NormalizeConstrainPlanes()
     {
-        int cplane_num = mvCPlanes.size();
+        int cplane_num = mvCPlanesInCamera.size();
         for(int i=0;i<cplane_num;i++)
         {
-            ConstrainPlane* pCPlane = mvCPlanes[i];
+            ConstrainPlane* pCPlane = mvCPlanesInCamera[i];
             // 检查椭球体中心的flag.
             bool flag_positive = pCPlane->pPlane->distanceToPoint(this->pose.translation(), true) > 0;
             if(!flag_positive)
@@ -763,14 +763,14 @@ namespace g2o
         VectorXd vec_info = SaveToVector();
         // std::cout << " 1 ) ellipsoid vec : " << vec_info.transpose() << std::endl;
         // 接下来获得平面数量, 并往后排列平面
-        int plane_num = mvCPlanes.size();
+        int plane_num = mvCPlanesInCamera.size();
         int single_vec_size = ConstrainPlane::vectorSize();
 
         // 接下来每个平面都变成一个 Vector, 并且叠加到同一个Vector后面
         VectorXd total_cplane_vec; total_cplane_vec.resize(plane_num * single_vec_size);
         for(int i=0; i<plane_num; i++)
         {
-            ConstrainPlane* pCPlane = mvCPlanes[i];
+            ConstrainPlane* pCPlane = mvCPlanesInCamera[i];
             VectorXd vec_cplane = pCPlane->toVector();
             // std::cout << " 2." << i << ") CPlane vec : " << vec_cplane.transpose() << std::endl;
 
@@ -801,8 +801,8 @@ namespace g2o
         int plane_num_pos = vec_ellipsoid_size;  // 位置在物体信息之后
         int plane_num = round(vec[plane_num_pos]);   
 
-        mvCPlanes.clear();
-        mvCPlanes.resize(plane_num);
+        mvCPlanesInCamera.clear();
+        mvCPlanesInCamera.resize(plane_num);
         int sngle_vec_size = ConstrainPlane::vectorSize();
 
         VectorXd vec_cplanes = vec.block(vec_ellipsoid_size+1, 0, plane_num*sngle_vec_size, 1);
@@ -811,7 +811,7 @@ namespace g2o
             VectorXd vec_cplane = vec_cplanes.block(i*sngle_vec_size, 0, sngle_vec_size, 1);
             ConstrainPlane* pCPlane = new ConstrainPlane(NULL);
             pCPlane->fromVector(vec_cplane);    // 该过程会判断无plane时初始化
-            mvCPlanes[i] = pCPlane;
+            mvCPlanesInCamera[i] = pCPlane;
         }
 
         return;
@@ -994,6 +994,17 @@ namespace g2o
             std::cerr << e.what() << '\n';
         }
         return;
+    }
+
+
+    void ellipsoid::addFilteredPlanesInWorld(g2o::plane* plane)
+    {
+        mpPlanes.push_back(plane);
+    }
+
+    std::vector<g2o::plane*> ellipsoid::GetPlanes()
+    {
+        return mpPlanes;
     }
 
 } // g2o

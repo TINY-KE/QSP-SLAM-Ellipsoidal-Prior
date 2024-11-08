@@ -385,7 +385,7 @@ Tworld_camera.qz:  0.430
 # Tworld_camera.qz:  0.500
 
 OptimizeEllipsoidWithMultiPlanes.gap: 30
-OptimizeEllipsoidWithMultiPlanes.debug_init_guess: 4
+OptimizeEllipsoidWithMultiPlanes.debug_init_guess: 5
 
 OptimizeEllipsoidWithMultiPlanes.dis_thresh_near: 0.7
 OptimizeEllipsoidWithMultiPlanes.dis_thresh_far: 2.5

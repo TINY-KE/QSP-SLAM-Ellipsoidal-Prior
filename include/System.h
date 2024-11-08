@@ -247,7 +247,7 @@ private:
 
     // Add by Lj
     vector<string> mvstrImageFilenamesRGB;
-    bool mbMapInSameThread;
+    int mbMapInSameThread;
 };
 
 }// namespace ORB_SLAM

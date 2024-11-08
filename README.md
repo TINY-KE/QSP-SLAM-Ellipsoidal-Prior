@@ -1,3 +1,6 @@
+# 编译回忆
+    + eigen用的是ubuntu20自带的
+
 # 恢复单目,但物体检测结果待筛选 commit d4ec5517bcfad64dd372450c6f1653790c337862
     + 编译qsp_slam_mono
     + 补充freiburg_001.yaml和config_freiburg_001.json
@@ -25,7 +28,7 @@
     + 通过useFar_vertical, useNear_vertical 等选项，控制远近平面的生成方法
 
 
-# 提高点云聚类的阈值，从而使得dsp效果变差  
+# 提高点云聚类的阈值，从而使得dsp效果变差    commit 6bb976c8ec1537d8ab63be61adf86c160fad7590
     + 恢复单目中原本的物体reconstruct函数 ProcessDetectedObjects_origin()
     + 提高聚类的严格标准1：  修改ComputeCuboidPCA.scale 为0.8
     + 提高聚类的严格标准2：  RemoveOutliersSimple();
@@ -49,8 +52,16 @@
     通过GenerateInitGuess(bbox, ground_pl_local.param);
 
 
+# 
++ 通过向map中的椭球体，添加多帧平面，从而联合优化椭球体。
++ 
++ 待：dsp物体生成时，旋转椭球体，与地面进行对比
++ 待：修改，提升slam速度。System.LocalMappingInSameThread: 1
 
 
+判断椅子和沙发，在预估椭球体之后，四个侧面。
+旋转轴z轴旋转。
+可能的位置：
 
 
 

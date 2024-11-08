@@ -543,7 +543,7 @@ void UpdateWorldConstrainPlanesForObjects(Objects& objs, Measurements& mms)
             Observation3D& ob_3d = measurement.ob_3d;
             g2o::ellipsoid* pObj_ob = ob_3d.pObj;
                             
-            std::vector<g2o::ConstrainPlane*> vCPlanes = pObj_ob->mvCPlanes;
+            std::vector<g2o::ConstrainPlane*> vCPlanes = pObj_ob->mvCPlanesInCamera;
             // MatrixXd mPlanesParam = pObj_ob->cplanes;
             int plane_num = vCPlanes.size();
 
@@ -954,7 +954,7 @@ double distanceFromPlaneToEllipsoid(g2o::plane& pl, g2o::ellipsoid& e)
 double calculateAssociationProbabilityUsingEllipsoid(g2o::ellipsoid& e_mea, g2o::ellipsoid& e_ob)
 {
     // 切平面 : 已经转换到世界坐标系下.
-    std::vector<g2o::ConstrainPlane*> vCPlanes = e_mea.mvCPlanes;
+    std::vector<g2o::ConstrainPlane*> vCPlanes = e_mea.mvCPlanesInCamera;
     int num = vCPlanes.size();
     int valid_num = 0;
 
@@ -1069,12 +1069,12 @@ double calculateAssociationProbability(Measurement& m, EllipObject& ob){
     g2o::ellipsoid e_measure_global = m.ob_3d.pObj->transform_from(Twc);
 
     // 将切平面转换到世界坐标系下
-    std::vector<g2o::ConstrainPlane*> vCPlanes = e_measure_global.mvCPlanes;
+    std::vector<g2o::ConstrainPlane*> vCPlanes = e_measure_global.mvCPlanesInCamera;
     std::vector<g2o::ConstrainPlane*> vCPlanesWorld = TransformAndGenerateConstrainPlanes(vCPlanes, Twc);
     // MatrixXd pMT = e_measure_global.cplanes;
     // MatrixXd pMTWorld = TransformPlanes(pMT, Twc);
 
-    e_measure_global.mvCPlanes = vCPlanesWorld;
+    e_measure_global.mvCPlanesInCamera = vCPlanesWorld;
 
     // 注意: 平面方差与三维距离方差是一样的. 
     // double prob_cplanes = calculateAssociationProbabilityUsingEllipsoid(e_measure_global, *ob.pEllipsoid);
@@ -1147,7 +1147,7 @@ void CheckValidBorder(EllipObject& ob, Measurement& m)
 {
     g2o::ellipsoid& e_mea = *m.ob_3d.pObj;
     g2o::ellipsoid& e_ob = *ob.pEllipsoid;
-    std::vector<g2o::ConstrainPlane*> vCPlanes = e_mea.mvCPlanes;   // 局部坐标系
+    std::vector<g2o::ConstrainPlane*> vCPlanes = e_mea.mvCPlanesInCamera;   // 局部坐标系
     
     int num = vCPlanes.size();
     for( int i=0; i<num; i++)

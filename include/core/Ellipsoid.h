@@ -50,7 +50,7 @@ public:
     Vector4d bbox;  // Local局部观测中存储它.
 
     MatrixXd cplanes;   // constrain 3d planes Nx4, one plane each ROW.
-    std::vector<ConstrainPlane*> mvCPlanes;
+    std::vector<ConstrainPlane*> mvCPlanesInCamera;   //对应bbox的顺序： 左 上 右 下
     std::vector<ConstrainPlane*> mvCPlanesWorld;
 
     ellipsoid();
@@ -182,6 +182,14 @@ private:
 
     void UpdateValueFrom(const g2o::ellipsoid& e);      // update the basic parameters from the given ellipsoid
     void NormalizeConstrainPlanes();
+
+// zhjd
+private:
+    std::vector<plane*> mpPlanes;
+public:
+    std::vector<plane*> GetPlanes();
+    void addFilteredPlanesInWorld(g2o::plane* plane);
+
 };
 
 } // g2o
