@@ -174,12 +174,13 @@ System::System(const string &strVocFile, const string &strSettingsFile, const st
     //Create Drawers. These are used by the Viewer
     mpFrameDrawer = new FrameDrawer(mpMap);
     mpMapDrawer = new MapDrawer(mpMap, strSettingsFile);
+    mpMapPublisher = new MapPublisher(mpMap, strSettingsFile);
     mpObjectDrawer = new ObjectDrawer(mpMap, mpMapDrawer, strSettingsFile);
     mpMapDrawer->SetObjectDrawer(mpObjectDrawer);
 
     //Initialize the Tracking thread
     //(it will live in the main thread of execution, the one that called this constructor)
-    mpTracker = new Tracking(this, mpVocabulary, mpFrameDrawer, mpMapDrawer,
+    mpTracker = new Tracking(this, mpVocabulary, mpFrameDrawer, mpMapDrawer, mpMapPublisher,
                              mpMap, mpKeyFrameDatabase, strSettingsFile, mSensor);
 
     // 地平面 
@@ -223,7 +224,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const st
     }
 
     //Initialize the Viewer thread and launch
-    mpViewer = new Viewer(this, mpFrameDrawer, mpMapDrawer, mpObjectDrawer, mpTracker,strSettingsFile);
+    mpViewer = new Viewer(this, mpFrameDrawer, mpMapDrawer, mpMapPublisher, mpObjectDrawer, mpTracker,strSettingsFile);
     mptViewer = new thread(&Viewer::Run, mpViewer);
     mpTracker->SetViewer(mpViewer);
 
@@ -457,16 +458,52 @@ void System::Reset()
     unique_lock<mutex> lock(mMutexReset);
     mbReset = true;
 }
+//
+// void System::Shutdown()
+// {
+//     mpLocalMapper->RequestFinish();
+//     bool bLoopCloserStopped = false;
+//     if (mpLoopCloser) {
+//         mpLoopCloser->RequestFinish();
+//         std::cout<<"mpLoopCloser Shutdown"<<std::endl;
+//     }
+//     else {
+//         bLoopCloserStopped = true;
+//         std::cout<<"mpLoopCloser Shutdown 2"<<std::endl;
+//     }
+//
+//     if(mpViewer)
+//     {
+//         mpViewer->RequestFinish();
+//         std::cout<<"mpViewer Shutdown start"<<std::endl;
+//         while(!mpViewer->isFinished())
+//             usleep(5000);
+//         std::cout<<"mpViewer Shutdown end"<<std::endl;
+//     }
+//
+//     // Wait until all thread have effectively stopped
+//     while(!mpLocalMapper->isFinished() || !bLoopCloserStopped)
+//     {
+//         if (!bLoopCloserStopped)
+//         {
+//             usleep(5000);
+//             bLoopCloserStopped = (mpLoopCloser->isFinished() && !mpLoopCloser->isRunningGBA());
+//         }
+//         usleep(5000);
+//         std::cout<<"mpLocalMapper Shutdown"<<std::endl;
+//     }
+//
+//
+//     if(mpViewer)
+//         pangolin::BindToContext("QSP-SLAM: Map Viewer");
+//
+//     PyGILState_Ensure();
+// }
 
 void System::Shutdown()
 {
     mpLocalMapper->RequestFinish();
-    bool bLoopCloserStopped = false;
-    if (mpLoopCloser)
-        mpLoopCloser->RequestFinish();
-    else
-        bLoopCloserStopped = true;
-
+    mpLoopCloser->RequestFinish();
     if(mpViewer)
     {
         mpViewer->RequestFinish();
@@ -475,21 +512,13 @@ void System::Shutdown()
     }
 
     // Wait until all thread have effectively stopped
-    while(!mpLocalMapper->isFinished() || !bLoopCloserStopped)
+    while(!mpLocalMapper->isFinished() || !mpLoopCloser->isFinished() || mpLoopCloser->isRunningGBA())
     {
-        if (!bLoopCloserStopped)
-        {
-            usleep(5000);
-            bLoopCloserStopped = (mpLoopCloser->isFinished() && !mpLoopCloser->isRunningGBA());
-        }
         usleep(5000);
     }
 
-
     if(mpViewer)
-        pangolin::BindToContext("QSP-SLAM: Map Viewer");
-
-    PyGILState_Ensure();
+        pangolin::BindToContext("ORB-SLAM2: Map Viewer");
 }
 
 void System::SaveTrajectoryTUM(const string &filename)

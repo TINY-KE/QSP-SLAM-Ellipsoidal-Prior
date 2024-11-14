@@ -26,6 +26,8 @@
 
 #include"System.h"
 
+#include<ros/ros.h>
+
 using namespace std;
 
 void LoadImages(const string &strSequence, const float &fps, vector<string> &vstrImageFilenames,
@@ -33,6 +35,10 @@ void LoadImages(const string &strSequence, const float &fps, vector<string> &vst
 
 int main(int argc, char **argv)
 {
+    ros::init(argc, argv, "ASLAM");
+    ros::start();
+    ros::NodeHandle nh;
+
     if(argc != 5)
     {
         cerr << endl << "Usage: ./mono_kitti path_to_vocabulary path_to_settings path_to_sequence path_to_saved_trajectory" << endl;
@@ -64,6 +70,8 @@ int main(int argc, char **argv)
     cv::Mat im;
     for(int ni = 0; ni < nImages; ni++)
     {
+        if(!ros::ok())
+            break;
         std::cout << "Inputting Image " << ni << "/" << nImages << std::endl;
         // Read image from file
         im = cv::imread(vstrImageFilenames[ni],CV_LOAD_IMAGE_UNCHANGED);
@@ -104,7 +112,7 @@ int main(int argc, char **argv)
 
     SLAM.SaveEntireMap(string(argv[4]));
 
-    cv::waitKey(0);
+    // cv::waitKey(0);
 
     // Stop all threads
     SLAM.Shutdown();

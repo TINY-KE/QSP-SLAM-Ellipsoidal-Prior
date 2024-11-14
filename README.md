@@ -1,5 +1,8 @@
 # 编译回忆
-    + eigen用的是ubuntu20自带的
+    + eigen用的是ubuntu20自带的 337版本
+    + DBow2  
+        cmake -DOpenCV_DIR="/home/robotlab/thirdparty/for_dspslam/opencv/build" ..
+    + 
 
 # 恢复单目,但物体检测结果待筛选 commit d4ec5517bcfad64dd372450c6f1653790c337862
     + 编译qsp_slam_mono

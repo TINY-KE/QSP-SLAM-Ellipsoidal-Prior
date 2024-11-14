@@ -28,6 +28,7 @@
 #include "System.h"
 
 #include <mutex>
+#include "MapPublisher.h"
 
 namespace ORB_SLAM2
 {
@@ -37,11 +38,12 @@ class FrameDrawer;
 class MapDrawer;
 class ObjectDrawer;
 class System;
+class MapPublisher;
 
 class Viewer
 {
 public:
-    Viewer(System* pSystem, FrameDrawer* pFrameDrawer, MapDrawer* pMapDrawer, ObjectDrawer* pObjectDrawer, Tracking *pTracking, const string &strSettingPath);
+    Viewer(System* pSystem, FrameDrawer* pFrameDrawer, MapDrawer* pMapDrawer, MapPublisher*  pMapPublisher, ObjectDrawer* pObjectDrawer, Tracking *pTracking, const string &strSettingPath);
 
     // Main thread function. Draw points, keyframes, the current camera pose and the last processed
     // frame. Drawing is refreshed according to the camera fps. We use Pangolin.
@@ -91,6 +93,8 @@ private:
 
     std::map<std::string,bool> mmPointCloudOptionMap;
     void RefreshPointCloudOptions();
+
+    MapPublisher* mpMapPublisher;
 
 };
 

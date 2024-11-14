@@ -1,9 +1,35 @@
 cmake_policy(SET CMP0048 NEW)
-project("QSP-SLAM")
+project("QSP-SLAM-Ellipsoidal-Prior")
 cmake_minimum_required(VERSION 3.2)
 
 # c++ version
 set(CMAKE_CXX_STANDARD 17)
+
+set(cv_bridge_DIR "/home/zhjd/thirdparty/vision_opencv-indigo/cv_bridge/cmake")
+find_package(catkin REQUIRED COMPONENTS
+        roscpp
+        #        cv_bridge
+        sensor_msgs
+        #        image_transport
+        std_msgs
+        tf
+
+        # plane
+        #        pcl_ros
+        #        pcl_conversions
+
+)
+
+catkin_package(
+        #  INCLUDE_DIRS include
+        #  LIBRARIES test
+        #  CATKIN_DEPENDS roscpp
+        #  DEPENDS system_lib
+        #     INCLUDE_DIRS include
+        #     LIBRARIES connect_gazebo
+        #     CATKIN_DEPENDS roscpp std_msgs test_pkg gazebo_msgs
+)   #for ros
+
 
 # 关闭所有warning
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w")
@@ -23,8 +49,12 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O3 -march=native")
 LIST(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake_modules)
 
 
-
 set(OpenCV_DIR "/home/robotlab/thirdparty/for_dspslam/opencv/build")
+set(Pangolin_DIR "/home/robotlab/thirdparty/for_dspslam/Pangolin/build")
+set(PYTHON_LIBRARIES  "/home/robotlab/anaconda3/envs/dsp-slam/lib/libpython3.7m.so")
+set(PYTHON_INCLUDE_DIRS  "/home/robotlab/anaconda3/envs/dsp-slam/include/python3.7m")
+set(PYTHON_EXECUTABLE  "/home/robotlab/anaconda3/envs/dsp-slam/bin/python3.7")
+
 find_package(OpenCV 3.4.1 REQUIRED)
 find_package(Eigen3 3.3.0 REQUIRED)
 find_package(Pangolin REQUIRED)
@@ -35,8 +65,6 @@ message(STATUS "Eigen version: ${EIGEN3_VERSION}")
 # 输出 Eigen 的 include 目录
 message(STATUS "Eigen include directory: ${EIGEN3_INCLUDE_DIRS}")
 message(STATUS "Eigen include directory2: ${EIGEN3_INCLUDE_DIR}")
-
-# set(Pangolin_DIR "/home/lj/Documents/DSC-SLAM/Thirdparty/Pangolin/build")
 
 # Pass the options to CMake
 add_compile_options(
@@ -59,6 +87,9 @@ find_package(GLUT REQUIRED)
 include_directories(${OPENGL_INCLUDE_DIRS})
 include_directories(${GLUT_INCLUDE_DIRS})
 
+
+#for ros
+
 # set(PCL_DIR "home/zhjd/thirdparty/pcl-1.13.1/build")
 set(PCL_DIR  /home/robotlab/thirdparty_install/pcl-1.13-eigen337/share/pcl-1.13)
 FIND_PACKAGE( PCL REQUIRED )
@@ -68,7 +99,11 @@ INCLUDE_DIRECTORIES( ${PCL_INCLUDE_DIRS}  )
 LINK_LIBRARIES( ${PCL_LIBRARY_DIRS} )
 
 
+
+
+
 include_directories(
+    ${catkin_INCLUDE_DIRS}   #for ros
     ${PROJECT_SOURCE_DIR}
     ${PROJECT_SOURCE_DIR}/include
     ${PROJECT_SOURCE_DIR}/include/core
@@ -132,6 +167,7 @@ add_library(${PROJECT_NAME} SHARED
     src/MapObject.cc
     src/ObjectDrawer.cc
     src/ObjectRenderer.cc
+    src/MapPublisher.cc
 
     src/Labeller.cc
 
@@ -162,6 +198,8 @@ add_library(${PROJECT_NAME} SHARED
 message("PYTHON_INCLUDE_DIRS = " ${PYTHON_INCLUDE_DIRS})
 
 target_link_libraries(${PROJECT_NAME}
+        ${catkin_LIBRARIES}  #for ros
+
         pybind11::embed
         ${OpenCV_LIBS}
         ${EIGEN3_LIBS}
@@ -182,17 +220,6 @@ target_link_libraries(${PROJECT_NAME}
         # tools
         )
 
-# set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
-# add_executable(qsp_slam qsp_slam.cc)
-# target_link_libraries(qsp_slam ${PROJECT_NAME})
-
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
-add_executable(qsp_slam_mono qsp_slam_mono.cc)
-target_link_libraries(qsp_slam_mono ${PROJECT_NAME})
-
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
-add_executable(qsp_slam_rgbd qsp_slam_rgbd.cc)
-target_link_libraries(qsp_slam_rgbd ${PROJECT_NAME})
 
 
 # # set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
@@ -224,3 +251,19 @@ add_subdirectory(src/tum_rgbd)
 
 
 # add_subdirectory(src/tools)
+
+
+
+
+
+# set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
+# add_executable(qsp_slam qsp_slam.cc)
+# target_link_libraries(qsp_slam ${PROJECT_NAME})
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
+add_executable(qsp_slam_mono qsp_slam_mono.cc)
+target_link_libraries(qsp_slam_mono ${PROJECT_NAME})
+
+#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
+#add_executable(qsp_slam_rgbd qsp_slam_rgbd.cc)
+#target_link_libraries(qsp_slam_rgbd ${PROJECT_NAME})

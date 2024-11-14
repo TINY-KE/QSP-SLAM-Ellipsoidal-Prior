@@ -40,7 +40,7 @@
 #include "ORBVocabulary.h"
 #include "Viewer.h"
 
-
+#include "MapPublisher.h"
 
 #include <pybind11/embed.h>
 #include <pybind11/eigen.h>
@@ -52,6 +52,7 @@ namespace ORB_SLAM2
 
 class Viewer;
 class FrameDrawer;
+class MapPublisher;
 class Map;
 class Tracking;
 class LocalMapping;
@@ -222,6 +223,7 @@ private:
 
     FrameDrawer* mpFrameDrawer;
     MapDrawer* mpMapDrawer;
+    MapPublisher* mpMapPublisher;
     ObjectDrawer* mpObjectDrawer;
 
     // System threads: Local Mapping, Loop Closing, Viewer.

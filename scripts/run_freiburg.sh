@@ -12,3 +12,6 @@ Vocabulary/ORBvoc.bin \
 configs/freiburg_001.yaml \
 /media/robotlab/新加卷/ubuntu22/DSP-SLAM/data/freiburg_cars/Car001  \
 map/freiburg/001
+
+
+#/home/robotlab/ws_3d_vp/src/QSP-SLAM-Ellipsoidal-Prior/Vocabulary/ORBvoc.bin /home/robotlab/ws_3d_vp/src/QSP-SLAM-Ellipsoidal-Prior/configs/freiburg_001.yaml /media/robotlab/新加卷/ubuntu22/DSP-SLAM/data/freiburg_cars/Car001  /home/robotlab/ws_3d_vp/src/QSP-SLAM-Ellipsoidal-Prior/map/freiburg/001
