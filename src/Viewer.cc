@@ -49,6 +49,9 @@ Viewer::Viewer(System* pSystem, FrameDrawer *pFrameDrawer, MapDrawer *pMapDrawer
     mViewpointY = fSettings["Viewer.ViewpointY"];
     mViewpointZ = fSettings["Viewer.ViewpointZ"];
     mViewpointF = fSettings["Viewer.ViewpointF"];
+
+    mUsePangolin =  fSettings["Viewer.UsePangolin"];
+
 }
 
 cv::Mat Viewer::GetFrame()
@@ -63,7 +66,6 @@ void Viewer::Run()
     int w = 1024;
     int h = 576;
     pangolin::CreateWindowAndBind("QSP-SLAM: Map Viewer",w,h);
-
     // 3D Mouse handler requires depth testing to be enabled
     glEnable(GL_DEPTH_TEST);
 
@@ -140,7 +142,6 @@ void Viewer::Run()
     pangolin::OpenGlMatrix Twc;
     Twc.SetIdentity();
 
-    cv::namedWindow("QSP-SLAM: Current Frame");
 
     bool bFollow = true;
     bool bLocalizationMode = false;
@@ -150,116 +151,121 @@ void Viewer::Run()
     {
         mpMapPublisher->Refresh();
 
-        RefreshMenu();  // Deal with dynamic menu bars
-
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        mpMapDrawer->GetCurrentOpenGLCameraMatrix(Twc);
-
-        if(menuFollowCamera && bFollow)
+        if(mUsePangolin)
         {
-            s_cam.Follow(Twc);
+            cv::namedWindow("QSP-SLAM: Current Frame");
+
+            RefreshMenu();  // Deal with dynamic menu bars
+
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            mpMapDrawer->GetCurrentOpenGLCameraMatrix(Twc);
+
+            if(menuFollowCamera && bFollow)
+            {
+                s_cam.Follow(Twc);
+            }
+            else if(menuFollowCamera && !bFollow)
+            {
+                s_cam.SetModelViewMatrix(pangolin::ModelViewLookAt(mViewpointX,mViewpointY,mViewpointZ, 0,0,0,0.0,-1.0, 0.0));
+                s_cam.Follow(Twc);
+                bFollow = true;
+            }
+            else if(!menuFollowCamera && bFollow)
+            {
+                bFollow = false;
+            }
+
+            if(menuLocalizationMode && !bLocalizationMode)
+            {
+                mpSystem->ActivateLocalizationMode();
+                bLocalizationMode = true;
+            }
+            else if(!menuLocalizationMode && bLocalizationMode)
+            {
+                mpSystem->DeactivateLocalizationMode();
+                bLocalizationMode = false;
+            }
+
+            d_cam.Activate(s_cam);
+            glClearColor(1.0f,1.0f,1.0f,1.0f);
+
+            // Used for object drawer
+            Tec = s_cam.GetModelViewMatrix();
+            Tec.row(1) = -Tec.row(1);
+            Tec.row(2) = -Tec.row(2);
+            glClearColor(1.0f,1.0f,1.0f,1.0f);
+            mpMapDrawer->DrawCurrentCamera(Twc);
+
+            float mappointSize = SliderMapPointSize;
+
+            /** From ORB-SLAM*/
+            if(menuShowKeyFrames || menuShowGraph)
+                mpMapDrawer->DrawKeyFrames(menuShowKeyFrames,menuShowGraph);
+            if(menuShowPoints)
+                mpMapDrawer->DrawMapPoints(mappointSize);
+
+
+            if(menuShowGroundPlane)
+                mpMapDrawer->drawPlanes(0); // 0:default.
+
+
+            double ellipsoidProbThresh = SliderEllipsoidProbThresh;
+
+            // draw ellipsoids
+            // 这里绘制了
+            if(menuShowEllipsoids)
+                mpMapDrawer->drawEllipsoids(ellipsoidProbThresh);
+
+            if(menuShowEllipsoidsObjects)
+                mpMapDrawer->drawEllipsoidsObjects(ellipsoidProbThresh);
+
+            // // draw the result of the single-frame ellipsoid extraction
+            // if(menuShowEllipsoidsObservation)
+            //     mpMapDrawer->drawObservationEllipsoids(ellipsoidProbThresh);
+
+            // mpMapDrawer->drawEllipsoid();
+
+            // draw pointclouds with names
+            float pointcloudSize = SliderPointCloudListSize;
+            RefreshPointCloudOptions();
+            mpMapDrawer->drawPointCloudWithOptions(mmPointCloudOptionMap, pointcloudSize);
+
+            // float pointcloudSize = SliderPointCloudListSize;
+            // if(menuShowPointCloudLists)
+            //     mpMapDrawer->drawPointCloudLists(pointcloudSize);
+
+
+            // if(menuShowPcdGlobal)
+            //     mpMapDrawer->drawPointCloudLists(pointcloudSize);
+
+            // if(menuShowPcdLocal)
+            //     mpMapDrawer->drawPointCloudLists(pointcloudSize);
+
+            //     mpMap->AddPointCloudList("Builder.Global Points", pCloud);
+            // mpMap->AddPointCloudList("Builder.Local Points", pCloudLocal);
+
+
+            mpObjectDrawer->ProcessNewObjects();
+
+            if(menuShowMapObjects)
+                mpObjectDrawer->DrawObjects(bFollow, Tec, ellipsoidProbThresh, pointcloudSize);
+
+            // // 如果是RGBD模式，则绘制深度图对应的点云
+            // if (mpTracker->mSensor == System::RGBD) {
+            //     mpMapDrawer->DrawDepthPointCloud();
+
+            // }
+
+            pangolin::FinishFrame();
         }
-        else if(menuFollowCamera && !bFollow)
-        {
-            s_cam.SetModelViewMatrix(pangolin::ModelViewLookAt(mViewpointX,mViewpointY,mViewpointZ, 0,0,0,0.0,-1.0, 0.0));
-            s_cam.Follow(Twc);
-            bFollow = true;
-        }
-        else if(!menuFollowCamera && bFollow)
-        {
-            bFollow = false;
-        }
-
-        if(menuLocalizationMode && !bLocalizationMode)
-        {
-            mpSystem->ActivateLocalizationMode();
-            bLocalizationMode = true;
-        }
-        else if(!menuLocalizationMode && bLocalizationMode)
-        {
-            mpSystem->DeactivateLocalizationMode();
-            bLocalizationMode = false;
-        }
-
-        d_cam.Activate(s_cam);
-        glClearColor(1.0f,1.0f,1.0f,1.0f);
-
-        // Used for object drawer
-        Tec = s_cam.GetModelViewMatrix();
-        Tec.row(1) = -Tec.row(1);
-        Tec.row(2) = -Tec.row(2);
-        glClearColor(1.0f,1.0f,1.0f,1.0f);
-        mpMapDrawer->DrawCurrentCamera(Twc);
-
-        float mappointSize = SliderMapPointSize;
-
-        /** From ORB-SLAM*/
-        if(menuShowKeyFrames || menuShowGraph)
-            mpMapDrawer->DrawKeyFrames(menuShowKeyFrames,menuShowGraph);
-        if(menuShowPoints)
-            mpMapDrawer->DrawMapPoints(mappointSize);
-
-        
-        if(menuShowGroundPlane)
-            mpMapDrawer->drawPlanes(0); // 0:default.
-
-
-        double ellipsoidProbThresh = SliderEllipsoidProbThresh;
-
-        // draw ellipsoids
-        // 这里绘制了
-        if(menuShowEllipsoids)
-            mpMapDrawer->drawEllipsoids(ellipsoidProbThresh);
-
-        if(menuShowEllipsoidsObjects)
-            mpMapDrawer->drawEllipsoidsObjects(ellipsoidProbThresh);
-
-        // // draw the result of the single-frame ellipsoid extraction
-        // if(menuShowEllipsoidsObservation)
-        //     mpMapDrawer->drawObservationEllipsoids(ellipsoidProbThresh);
-        
-        // mpMapDrawer->drawEllipsoid();
-
-        // draw pointclouds with names
-        float pointcloudSize = SliderPointCloudListSize;
-        RefreshPointCloudOptions();
-        mpMapDrawer->drawPointCloudWithOptions(mmPointCloudOptionMap, pointcloudSize);
-
-        // float pointcloudSize = SliderPointCloudListSize;
-        // if(menuShowPointCloudLists)
-        //     mpMapDrawer->drawPointCloudLists(pointcloudSize);
-
-
-        // if(menuShowPcdGlobal)
-        //     mpMapDrawer->drawPointCloudLists(pointcloudSize);
-        
-        // if(menuShowPcdLocal)
-        //     mpMapDrawer->drawPointCloudLists(pointcloudSize);
-        
-        //     mpMap->AddPointCloudList("Builder.Global Points", pCloud);
-        // mpMap->AddPointCloudList("Builder.Local Points", pCloudLocal);
-
-
-        mpObjectDrawer->ProcessNewObjects();
-
-        if(menuShowMapObjects)
-            mpObjectDrawer->DrawObjects(bFollow, Tec, ellipsoidProbThresh, pointcloudSize);
-
-        // // 如果是RGBD模式，则绘制深度图对应的点云
-        // if (mpTracker->mSensor == System::RGBD) {
-        //     mpMapDrawer->DrawDepthPointCloud();
-            
-        // }
-
-        pangolin::FinishFrame();
 
         cv::Mat im = GetFrame();
 //        double scale = float(w) / im.size().width;
 //        cv::Mat scaled_im;
 //        cv::resize(im, scaled_im, cv::Size(0, 0), scale, scale);
         cv::imshow("QSP-SLAM: Current Frame CV", im);
-        cv::waitKey(mT);
+        cv::waitKey(mT*15);
 
         if(menuPause) {
             mpTracker->SetFrameByFrame();
@@ -289,7 +295,7 @@ void Viewer::Run()
             }
         }
 
-        if (menuClose) 
+        if (menuClose)
         {
             mpSystem->Shutdown();
         }

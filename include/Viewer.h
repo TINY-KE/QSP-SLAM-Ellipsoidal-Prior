@@ -95,7 +95,7 @@ private:
     void RefreshPointCloudOptions();
 
     MapPublisher* mpMapPublisher;
-
+    int mUsePangolin;
 };
 
 }

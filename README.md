@@ -55,9 +55,24 @@
     通过GenerateInitGuess(bbox, ground_pl_local.param);
 
 
-# 
+# 将点云和相机rviz显示   commit caf390440bf989784b882ab95838f8bab63d08fe
 + 通过向map中的椭球体，添加多帧平面，从而联合优化椭球体。
++ 引入MapPublisher.cpp
++ 解决多线程无法中断的问题
+
+# dsp物体通过rviz显示
++  通过Marching Cubes 算法生成SDF的网格顶点矩阵， 转换为点和面片
+    + vertices, faces = convert_sdf_voxels_to_mesh(sdf_tensor.view(self.voxels_dim, self.voxels_dim, self.voxels_dim))
+    + pMO->vertices = pyMesh.attr("vertices").cast<Eigen::MatrixXf>();
+    + pMO->faces = pyMesh.attr("faces").cast<Eigen::MatrixXi>();
++ rviz显示dsp物体
+
+# 迁移到RGBD模式
++ 使用self数据集
++ 删除深度点云生成的椭球体
++ 在深度模式中添加infer
 + 
+
 + 待：dsp物体生成时，旋转椭球体，与地面进行对比
 + 待：修改，提升slam速度。System.LocalMappingInSameThread: 1
 
@@ -74,7 +89,7 @@
     + 将单帧bbox平面从相机坐标系转移到世界坐标系，并通过可视化，验证了准确性
     + 将平面从世界坐标系转移到当前帧的相机坐标系
     + 编写optimizeEllipsoidWithMultiPlanes，实现利用地平面和多帧bbox平面，生成椭球体
-    
+
     + 问题： 物体问题很多，是不是可以通过PlaneNormal的方式 解决这个问题
     
     + 今晚（1）检查bbox生成的平面有没有normal

@@ -118,12 +118,24 @@ MapPublisher::MapPublisher(Map* pMap, const string &strSettingPath):mpMap(pMap),
     //publisher_mam_rviz = nh.advertise<geometry_msgs::PoseWithCovarianceStamped>("/local_nbv", 1000);
     // publisher_IEtext = nh.advertise<visualization_msgs::Marker>("IEtext", 1);
     publisher_ObjectInfo = nh.advertise<std_msgs::Float32MultiArray>("/objects_info", 10);
+    publisher_SdfObject = nh.advertise<visualization_msgs::Marker>("/objects", 10);
 
     publisher.publish(mPoints);
     publisher.publish(mReferencePoints);
     publisher_CoView.publish(mCovisibilityGraph);
     publisher_KF.publish(mKeyFrames);
     publisher_curframe.publish(mCurrentCamera);
+
+    mvObjectColors.push_back(std::tuple<float, float, float>({230. / 255., 0., 0.}));	 // red  0
+    mvObjectColors.push_back(std::tuple<float, float, float>({60. / 255., 180. / 255., 75. / 255.}));   // green  1
+    mvObjectColors.push_back(std::tuple<float, float, float>({0., 0., 255. / 255.}));	 // blue  2
+    mvObjectColors.push_back(std::tuple<float, float, float>({255. / 255., 0, 255. / 255.}));   // Magenta  3
+    mvObjectColors.push_back(std::tuple<float, float, float>({255. / 255., 165. / 255., 0}));   // orange 4
+    mvObjectColors.push_back(std::tuple<float, float, float>({128. / 255., 0, 128. / 255.}));   //purple 5
+    mvObjectColors.push_back(std::tuple<float, float, float>({0., 255. / 255., 255. / 255.}));   //cyan 6
+    mvObjectColors.push_back(std::tuple<float, float, float>({210. / 255., 245. / 255., 60. / 255.}));  //lime  7
+    mvObjectColors.push_back(std::tuple<float, float, float>({250. / 255., 190. / 255., 190. / 255.})); //pink  8
+    mvObjectColors.push_back(std::tuple<float, float, float>({0., 128. / 255., 128. / 255.}));   //Teal  9
 }
 
 void MapPublisher::Refresh()
@@ -137,13 +149,15 @@ void MapPublisher::Refresh()
         vector<MapPoint*> vRefMapPoints = mpMap->GetReferenceMapPoints();
         //vector<MapPlane*> vMapPlanes = mpMap ->GetAllMapPlanes();
         // vector<MapObject*> vMapObjects = mpMap ->GetAllMapObjects();
-        vector<ellipsoid*> vMapObjects = mpMap ->GetAllEllipsoidsVisual();
-        PublishMapPoints(vMapPoints, vRefMapPoints);   
+        vector<ellipsoid*> vMapEllipsoids = mpMap ->GetAllEllipsoidsVisual();
+        PublishMapPoints(vMapPoints, vRefMapPoints);
         PublishKeyFrames(vKeyFrames);
         //PublishPlane(vMapPlanes);
-        PublishEllipsoidInfo(vMapObjects);
+        PublishEllipsoidInfo(vMapEllipsoids);
         //PublishIE(vMapObjects);
 
+        auto mvpMapObjects = mpMap->GetAllMapObjects();
+        PublishMapObjects(mvpMapObjects);
     }
 }
 
@@ -388,6 +402,66 @@ geometry_msgs::Point MapPublisher::corner_to_marker(const std::vector<double>& v
 }
 
 
+void MapPublisher::PublishMapObjects(const vector<MapObject *> &vObjs) {
+    std::cout<<"[PublishMapObjects]"<<std::endl;
+    for (auto pMO: vObjs) {
+
+        if (!pMO)
+            continue;
+        if (pMO->isBad())
+            continue;
+
+        // 使用 Eigen 矩阵来表示 verts 和 faces
+        auto verts = pMO->vertices;
+        auto faces = pMO->faces;
+
+        // 创建一个 Marker 消息
+        visualization_msgs::Marker mesh_marker;
+        mesh_marker.header.frame_id = MAP_FRAME_ID; // 设置网格的参考坐标系
+        mesh_marker.header.stamp = ros::Time::now();
+        mesh_marker.ns = "sdf_mesh";
+        mesh_marker.id = pMO->mnId;
+        mesh_marker.type = visualization_msgs::Marker::TRIANGLE_LIST; // 三角形列表类型
+        mesh_marker.action = visualization_msgs::Marker::ADD;
+
+        // 设置标记的颜色和透明度
+        mesh_marker.color.a = 1.0f; // 设置透明度为 1.0（不透明）
+        mesh_marker.color.r =  get<0>(mvObjectColors[pMO->label % 10]);
+        mesh_marker.color.g =  get<1>(mvObjectColors[pMO->label % 10]);
+        mesh_marker.color.b =  get<2>(mvObjectColors[pMO->label % 10]);
+
+        // 设置标记的缩放
+        mesh_marker.scale.x = 1.0;
+        mesh_marker.scale.y = 1.0;
+        mesh_marker.scale.z = 1.0;
+
+        Eigen::Matrix4f Sim3Two = pMO->GetPoseSim3();
+
+        // 遍历每个 face，并从 verts 中提取顶点
+        for (int i = 0; i < faces.rows(); ++i) {
+            for (int j = 0; j < 3; ++j) {
+                int vertex_idx = faces(i, j); // 获取顶点索引
+
+                const Eigen::Vector3f &vertex = verts.row(vertex_idx); // 获取顶点的坐标
+
+                Eigen::Vector4f local_vertex(vertex(0), vertex(1), vertex(2), 1.0);  // 齐次坐标
+
+                // 将顶点转换到 world 坐标系
+                Eigen::Vector4f world_vertex = Sim3Two * local_vertex;
+
+                geometry_msgs::Point point;
+                point.x = world_vertex[0];
+                point.y = world_vertex[1];
+                point.z = world_vertex[2];
+
+                mesh_marker.points.push_back(point);
+            }
+        }
+
+        // 发布网格
+        publisher_SdfObject.publish(mesh_marker);
+    }
+}
 
 void MapPublisher::PublishEllipsoidInfo(const vector<ellipsoid*> &vObjs ){
 
@@ -410,8 +484,8 @@ void MapPublisher::PublishEllipsoidInfo(const vector<ellipsoid*> &vObjs ){
         auto obj = vObjs[i];
         auto pose = obj->pose.toXYZPRYVector();
         auto scale = obj->scale;
-        std::cout<<"[PublishEllipsoidInfo] pose"<<pose.transpose();
-        std::cout<<",  scale:"<<scale.transpose()<<std::endl;
+        // std::cout<<"[PublishEllipsoidInfo] pose"<<pose.transpose();
+        // std::cout<<",  scale:"<<scale.transpose()<<std::endl;
 
         multiarray_msg.data.push_back(pose[0]); //x
         multiarray_msg.data.push_back(pose[1]);

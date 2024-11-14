@@ -332,7 +332,7 @@ Viewer.ViewpointY: -10   # originally -10
 Viewer.ViewpointZ: -0.1
 Viewer.ViewpointF: 2000
 
-
+Viewer.UsePangolin: 0
 
 #--------------------------------------------------------------------------------------------
 # 整合

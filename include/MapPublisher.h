@@ -73,6 +73,8 @@ public:
     void PublishCurrentCamera(const cv::Mat &Tcw);
     // void PublishObjectInfo(const vector<MapObject*> &vpObjs );
     void PublishEllipsoidInfo(const vector<ellipsoid*> &vpObjs );
+    void PublishMapObjects(const vector<MapObject*> &vpObjs );
+
     // void PublishObject(const vector<Object_Map*> &vpObjs );
     // void PublishIE(const vector<Object_Map*> &vObjs );
     // void PublishMainDirection(const vector<Object_Map*> &vObjs );
@@ -105,7 +107,7 @@ private:
     //ros::Publisher publisher_mam_rviz;   //NBV MAM
     ros::Publisher publisher_IEtext;
     ros::Publisher publisher_ObjectInfo;
-
+    ros::Publisher publisher_SdfObject;
     //tf tree
     //tf::TransformBroadcaster odom_broadcaster;
     //tf::TransformBroadcaster camera_broadcaster;
@@ -137,6 +139,8 @@ private:
     const char* OBJECTS_NAMESPACE = "MapObjects";
     const char* GRAPH_NAMESPACE = "Graph";
     const char* CAMERA_NAMESPACE = "Camera";
+
+    std::vector<std::tuple<float, float, float>> mvObjectColors;
 };
 
 } //namespace ORB_SLAM
