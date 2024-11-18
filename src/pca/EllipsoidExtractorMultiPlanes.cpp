@@ -765,21 +765,7 @@ g2o::ellipsoid EllipsoidExtractor::EstimateLocalEllipsoidUsingMultiPlanes(\
     pcl::PointCloud<PointType>::Ptr pCloudPCLGravity(new pcl::PointCloud<PointType>);
     pcl::transformPointCloud(*pCloudPCL, *pCloudPCLGravity, transform_gw);
 
-    // 可视化: 重力系下的物体
-    // ORB_SLAM2::PointCloud *pObjectCloudGravity = pclXYZToQuadricPointCloudPtr(pCloudPCLGravity); // normalized coordinate
-    // mpMap->AddPointCloudList("cloud_gravity", pObjectCloudGravity, 0);
-
-    // std::cout << "*****************************" << std::endl;
-    // std::cout << "Showing pObjectCloudGravity, press [ENTER] to continue ... " << std::endl;
-    // std::cout << "*****************************" << std::endl;
-    // getchar();
-
-    // // todo: 测试，有待解除注释
-    // delete pObjectCloudGravity;
-    // pObjectCloudGravity = NULL;
-
     // 对点云使用法向量投票器，计算偏航角度
-    // std::cout << "Computing cloud_normalized" << std::endl;
     double yaw = NormalVoter(pCloudPCLGravity); // 该函数获得一个位于 XY 平面内的, 三维法向量. 可与 Z轴组完整旋转矩阵.
 
     // 通过yaw角度将 Gravity - > normalized
@@ -791,14 +777,6 @@ g2o::ellipsoid EllipsoidExtractor::EstimateLocalEllipsoidUsingMultiPlanes(\
     pcl::PointCloud<PointType>::Ptr pCloudPCLNormalized(new pcl::PointCloud<PointType>);
     pcl::transformPointCloud(*pCloudPCLGravity, *pCloudPCLNormalized, transform_ng);
     ORB_SLAM2::PointCloud *pObjectCloudNormalized = pclXYZToQuadricPointCloudPtr(pCloudPCLNormalized); // normalized coordinate
-
-    // // 可视化: 物体重力坐标系下，转角对齐后的点云
-    // mpMap->AddPointCloudList("cloud_normalized", pObjectCloudNormalized, 0);
-
-    // std::cout << "*****************************" << std::endl;
-    // std::cout << "Showing pObjectCloudNormalized, press [ENTER] to continue ... " << std::endl;
-    // std::cout << "*****************************" << std::endl;
-    // getchar();
 
     // 基于PCA结果生成最小包围盒顶点. 位于相机坐标系内.
     // 从规范化的点云中获取椭球体
@@ -817,23 +795,12 @@ g2o::ellipsoid EllipsoidExtractor::EstimateLocalEllipsoidUsingMultiPlanes(\
     // 可视化: 物体重力坐标系下，转角对齐后的点云
     mpMap->addEllipsoid(&e_local_normalized);
 
-    // std::cout << "*****************************" << std::endl;
-    // std::cout << "Showing ellipsoid e_local_normalized, press [ENTER] to continue ... " << std::endl;
-    // std::cout << "*****************************" << std::endl;
-    // getchar();
-
-    // -------------- 到此已获得相机坐标系下的椭球体!
-
     // 接下来添加 ConstrainPlanes.
     Matrix3d calib = CameraToCalibMatrix(camera);
     // 生成约束平面(ellipsold, bbox, depth...)，可以在这一过程中增加基于约束平面的优化
     // 存储在 e_local_normalized 中
     GenerateConstrainPlanesToEllipsoid(e_local_normalized, bbox, depth, campose_wc, calib);
     VisualizeConstrainPlanes(e_local_normalized, campose_wc, mpMap); // 中点定在全局坐标系
-    // std::cout << "*****************************" << std::endl;
-    // std::cout << "Showing Constrain Planes, press [ENTER] to continue ... " << std::endl;
-    // std::cout << "*****************************" << std::endl;
-    // getchar();
 
 
     // 评估本次提取的概率 : 投影回来的矩形与 bbox 的 IoU 作为规律.

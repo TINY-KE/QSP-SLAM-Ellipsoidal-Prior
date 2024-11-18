@@ -36,7 +36,7 @@
 #include <sys/resource.h>
 #include <iostream>
 
-
+#include<ros/ros.h>
 
 using namespace std;
 
@@ -53,6 +53,10 @@ void LoadImages(const string &strAssociationFilename, vector<string> &vstrImageF
 
 int main(int argc, char **argv)
 {
+    ros::init(argc, argv, "ASLAM_RGBD");
+    ros::start();
+    ros::NodeHandle nh;
+
     if(argc != 6)
     {
         cerr << endl << "Usage: ./qsp_slam_rgbd path_to_vocabulary path_to_settings path_to_sequence path_to_association path_to_saved_trajectory" << endl;
@@ -163,7 +167,6 @@ int main(int argc, char **argv)
     vector<float> vTimesTrack;
     vTimesTrack.resize(nImages);
 
-    bool frame_by_frame = fSettings["frame_by_frame"].isNamed();
 
     cout << endl << "-------" << endl;
     cout << "Start processing sequence ..." << endl;
@@ -197,19 +200,6 @@ int main(int argc, char **argv)
             return 1;/*  */
         }
 
-        if(frame_by_frame) {
-            std::cout << "*****************************" << std::endl;
-            std::cout << "Press [ENTER] to continue ... , [y] to autonomous mode" << std::endl;
-            std::cout << "*****************************" << std::endl;
-            char key = getchar();
-            if (key=='y')
-            {
-                frame_by_frame = false;
-            }
-            else if (key=='e'){
-                break;
-            }
-        }
 
         std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
 

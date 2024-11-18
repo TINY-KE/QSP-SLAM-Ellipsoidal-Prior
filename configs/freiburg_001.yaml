@@ -183,10 +183,6 @@ Dataset.Path.PriTable: "./config/pritable.txt"
 
 SemanticPrior.PriorD: 1
 SemanticPrior.PriorE: 1
-# Prior weight
-# SemanticPrior.Weight: 0.01
-# Ground Plane Contrain weight
-# SemanticPrior.GroundWeight: 2
 
 # deg
 Optimizer.Edges.3DConstrain.PlaneAngle.Sigma: 100
@@ -333,6 +329,16 @@ Viewer.ViewpointZ: -0.1
 Viewer.ViewpointF: 2000
 
 Viewer.UsePangolin: 0
+
+
+
+
+
+
+
+
+
+
 
 #--------------------------------------------------------------------------------------------
 # 整合

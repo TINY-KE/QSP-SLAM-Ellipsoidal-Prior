@@ -69,8 +69,19 @@
 
 # 迁移到RGBD模式
 + 使用self数据集
-+ 删除深度点云生成的椭球体
-+ 在深度模式中添加infer
++ 在初始的时候，添加相机真值
++ 更改物体关联的方式?
+  + AssociateObjects(pKF) 和 AssociateObjectsByProjection(pKF) 的区别
+  + 结论：暂时先用point椭球体关联
++ 关联过程中，同时存储infer椭球体和point椭球体，并对比两者，当infer椭球体中点云相对充盈的时候，再用infer椭球体以生成最终物体
+  + UpdateObjectObservation_GenerateEllipsoid在图像帧中存储的椭球体，是如何用在数据关联AssociateObjectsByProjection中使用的？
+    + pFrame->mpLocalObjects
+    + pKF->mpLocalEllipsolds
+    + pKF->mpGlobalEllipsolds
+    + 图像帧中存储的椭圆在AssociateObjectsByProjection没用到，使用的是地图中的物体对应的椭球，
+    + 因此，图像帧中存储的椭圆应该是在localmap中使用
++ 关联在一起的椭球体是怎么融合的？？
++ 待：在深度模式中添加infer
 + 
 
 + 待：dsp物体生成时，旋转椭球体，与地面进行对比

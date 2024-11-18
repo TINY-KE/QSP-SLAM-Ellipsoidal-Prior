@@ -213,15 +213,8 @@ System::System(const string &strVocFile, const string &strSettingsFile, const st
     // 暂时不考虑回环
     //Initialize the Loop Closing thread and launch
     // Only enable loop closing for KITTI
-    if (mSensor == STEREO)
-    {
-        mpLoopCloser = new LoopClosing(mpMap, mpKeyFrameDatabase, mpVocabulary, mSensor!=MONOCULAR);
-        mptLoopClosing = new thread(&ORB_SLAM2::LoopClosing::Run, mpLoopCloser);
-    }
-    else
-    {
-        mpLoopCloser = nullptr;
-    }
+    mpLoopCloser = new LoopClosing(mpMap, mpKeyFrameDatabase, mpVocabulary, mSensor!=MONOCULAR);
+    mptLoopClosing = new thread(&ORB_SLAM2::LoopClosing::Run, mpLoopCloser);
 
     //Initialize the Viewer thread and launch
     mpViewer = new Viewer(this, mpFrameDrawer, mpMapDrawer, mpMapPublisher, mpObjectDrawer, mpTracker,strSettingsFile);
@@ -235,11 +228,8 @@ System::System(const string &strVocFile, const string &strSettingsFile, const st
     mpLocalMapper->SetTracker(mpTracker);
     mpLocalMapper->SetLoopCloser(mpLoopCloser);
 
-    if (mpLoopCloser)
-    {
-        mpLoopCloser->SetTracker(mpTracker);
-        mpLoopCloser->SetLocalMapper(mpLocalMapper);
-    }
+    mpLoopCloser->SetTracker(mpTracker);
+    mpLoopCloser->SetLocalMapper(mpLocalMapper);
 
     OpenDepthEllipsoid();
 

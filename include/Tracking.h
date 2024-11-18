@@ -133,6 +133,7 @@ public:
      * Object Observation 物体观测相关
      * ---------------------------------*/
     void UpdateObjectObservation_GenerateEllipsoid(ORB_SLAM2::Frame *pFrame, KeyFrame* pKF, bool withAssociation);
+
     /** --------------------------------
      * Ellipsoid 椭球体相关
      * ---------------------------------*/
@@ -148,6 +149,7 @@ public:
     void ActivateGroundPlane(g2o::plane &groundplane);
     void ProcessGroundPlaneEstimation();
 
+    void UpdateDepthAndInferEllipsoidEstimation(ORB_SLAM2::Frame* pFrame, KeyFrame* pKF, bool withAssociation);
     void UpdateDepthEllipsoidEstimation(ORB_SLAM2::Frame* pFrame, KeyFrame* pKF, bool withAssociation);
 
     Builder* GetBuilder();
@@ -339,7 +341,7 @@ protected:
 
     // std::vector<g2o::SE3Quat> mvSavedFramePosesTwc;
 
-    bool mbDepthEllipsoidOpened;
+    bool mbOpenDepthEllipsoid;
     bool mbOpenOptimization;
 
     int minimum_match_to_associate;
@@ -359,7 +361,7 @@ protected:
 
 // [整合]
 public:
-    void AssociateObjectsByProjection_mono(KeyFrame *pKF);  // assocating detection to object by projecting map points
+    void AssociateObjectsByProjection_mono_nouse(KeyFrame *pKF);  // assocating detection to object by projecting map points
 
     std::string mStrSettingPath; 
     

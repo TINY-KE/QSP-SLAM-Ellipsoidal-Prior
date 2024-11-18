@@ -120,7 +120,7 @@ Tracking::Tracking(System *pSys, ORBVocabulary* pVoc, FrameDrawer *pFrameDrawer,
     mRows = rows;
     mCols = cols;
 
-    mbDepthEllipsoidOpened = false;
+    mbOpenDepthEllipsoid = false;
     mbOpenOptimization = true;
 
     mpBuilder = new Builder();
@@ -308,6 +308,12 @@ cv::Mat Tracking::GrabImageRGBD(const cv::Mat &imRGB,const cv::Mat &imD, const d
     // clock_t time_0_start = clock();
     mCurrentFrame = Frame(mImGray,imDepth,timestamp,mpORBextractorLeft,mpORBVocabulary,mK,mDistCoef,mbf,mThDepth,imRGB,imD);
 
+    // [改进] [位姿真值] [groundtruth] 初始帧的位姿
+    SetRealPose();
+
+    // todo: 目前是手动指定了平面, 之后可以改为自动检测
+    ActivateGroundPlane(mGroundPlane);    //激活获取到的平面（可以来自自动平面估计，也可以来自手动设置）
+
     // clock_t time_frame_creation = clock();
     // cout << " -- time_frame_creation: " <<(double)(time_frame_creation - time_0_start) / CLOCKS_PER_SEC << "s" << endl;
     Track();
@@ -380,7 +386,7 @@ cv::Mat Tracking::GrabImageMonocular(const cv::Mat &im, const double &timestamp)
     SetRealPose();
 
     // todo: 目前是手动指定了平面, 之后可以改为自动检测
-    ActivateGroundPlane(mGroundPlane);
+    ActivateGroundPlane(mGroundPlane);    //激活获取到的平面（可以来自自动平面估计，也可以来自手动设置）
     // VisualizeManhattanPlanes();
 
     Track();
@@ -651,6 +657,18 @@ void Tracking::StereoInitialization()
         // Insert KeyFrame in the map
         mpMap->AddKeyFrame(pKFini);
 
+        //(1)将第一帧,  转为相对地面的真实位姿
+        cv::Mat Worldframe_to_Firstframe = mCurrentFrame.mGroundtruthPose_mat;
+        cv::Mat R = Worldframe_to_Firstframe.rowRange(0, 3).colRange(0, 3);
+        cv::Mat t = Worldframe_to_Firstframe.rowRange(0, 3).col(3);
+        cv::Mat Rinv = R.t();
+        cv::Mat Ow = -Rinv * t;
+        cv::Mat Firstframe_to_Worldframe = cv::Mat::eye(4, 4, CV_32F);
+        Rinv.copyTo (Firstframe_to_Worldframe.rowRange(0, 3).colRange(0, 3));
+        Ow.copyTo   (Firstframe_to_Worldframe.rowRange(0, 3).col(3));
+        pKFini->SetPose(pKFini->GetPose() * Firstframe_to_Worldframe);
+
+        //(2)将第一帧内部的point,  转为相对地面的真实位姿, 并添加到map中
         // Create MapPoints and asscoiate to KeyFrame
         for(int i=0; i<mCurrentFrame.N;i++)
         {
@@ -663,16 +681,17 @@ void Tracking::StereoInitialization()
                 pKFini->AddMapPoint(pNewMP,i);
                 pNewMP->ComputeDistinctiveDescriptors();
                 pNewMP->UpdateNormalAndDepth();
+                pNewMP->SetWorldPos( Worldframe_to_Firstframe.rowRange(0, 3).colRange(0, 3)  * pNewMP->GetWorldPos()
+                                                + Worldframe_to_Firstframe.rowRange(0, 3).col(3)  );
                 mpMap->AddMapPoint(pNewMP);
-
                 mCurrentFrame.mvpMapPoints[i]=pNewMP;
             }
         }
-
         cout << "New map created with " << mpMap->MapPointsInMap() << " points" << endl;
 
+        //(3)当前帧 添加到localmap中
         mpLocalMapper->InsertKeyFrame(pKFini);
-
+        mCurrentFrame.SetPose(pKFini->GetPose());
         mLastFrame = Frame(mCurrentFrame);
         mnLastKeyFrameId=mCurrentFrame.mnId;
         mpLastKeyFrame = pKFini;
@@ -1337,14 +1356,7 @@ void Tracking::CreateNewKeyFrame()
         std::cout << " \n[ UpdateObjectObservation_GenerateEllipsoid ] " << std::endl;
         UpdateObjectObservation_GenerateEllipsoid(&mCurrentFrame, pKF, withAssociation);
 
-        // printMemoryUsage();
-
-        // if(mbDynamicOpenOptimization){
-        //     NonparamOptimization(); // Optimize data associations,objects,landmarks.        
-        // }
-
         // 如果地图存在物体，则通过地图点将新的观测与物体建立关联，并且补充地图点
-        //DetectObjects(pKF);
         if (!mpMap->GetAllMapObjects().empty())
         {
             // AssociateObjects(pKF);

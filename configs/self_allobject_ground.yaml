@@ -6,7 +6,7 @@ Tracking.ShowEllipsoldProcess: 0
 LocalMapping.ShowEllipsoldProcess: 0
 LocalMapping.KeepRawPose: 0
 Tracking.AddSuffixToPcd: 0
-Tracking.AssociateObjectWithEllipsold: 1
+Tracking.AssociateObjectWithEllipsold: 1   #associate_object_with_ellipsold
 Tracking.AssociateDebug: 0
 Tracking.AddDepthPcdToMapObject: 1
 Tracking.UseDepthPcdToReconstruct: 1
@@ -14,7 +14,7 @@ Tracking.UseDepthPcdToReconstruct: 1
 LocalMapping.MinValidPoints: 50
 LocalMapping.MinValidRays: 1
 
-Tracking.AssociateIoUThresold: 0.52
+Tracking.AssociateIoUThresold: 0.52    #associate_IoU_thresold
 
 Tracking.MinimumPtNumToJudgeGood: 5  # default 20
 
@@ -53,7 +53,7 @@ LocalMapping.DistFiltParam: 0.4
 #66,  #键盘
 #41   #杯子
 
-# keyboard, laptop, bottle, bowl, 
+# keyboard, laptop, bottle, bowl,
 
 # yolo_class: [77, 73, 39, 63, 75, 66, 41, 64]   #先去掉笔记本电脑 63
 
@@ -61,7 +61,7 @@ LocalMapping.DistFiltParam: 0.4
 # YoloClasses: [63, 73, 75, 39, 66, 41]
 # # 是否能读字符串列表
 
-# DecoderPaths: ["weights/deepsdf/laptops_64", 
+# DecoderPaths: ["weights/deepsdf/laptops_64",
 #                "weights/deepsdf/books_64_c",
 #                "weights/deepsdf/vases_64_c",
 #                "weights/deepsdf/bottles_64",
@@ -74,7 +74,7 @@ LocalMapping.DistFiltParam: 0.4
 YoloClasses: [56, 57, 60, 59]
 # 是否能读字符串列表
 
-DecoderPaths: ["weights/deepsdf/chairs_64", 
+DecoderPaths: ["weights/deepsdf/chairs_64",
                "weights/deepsdf/sofas_64",
                "weights/deepsdf/tables_64",
                "weights/deepsdf/beds_64"]
@@ -86,8 +86,8 @@ Dataset.Path.Root: "/media/robotlab/新加卷/ubuntu22/QSP-SLAM-all/MySimDataset
 Dataset.Path.Map: "./dataset.pcd"
 
 
-frame_by_frame: 1  # 1: True, 0: False
-Tracking.frame_by_frame: 1  # 1: True, 0: False
+frame_by_frame: 0  # 1: True, 0: False
+Tracking.frame_by_frame: 0  # 1: True, 0: False
 
 System.mode: RGBD
 System.output: KeyFrameTrajectoryRGBD.txt
@@ -98,7 +98,7 @@ System.output: KeyFrameTrajectoryRGBD.txt
 System.LocalMappingInSameThread: 1
 
 #---------------------------
-# Camera Parameters. 
+# Camera Parameters.
 #---------------------------
 
 # Camera calibration and distortion parameters (OpenCV)
@@ -171,10 +171,6 @@ Dataset.Path.PriTable: "./config/pritable.txt"
 
 SemanticPrior.PriorD: 1
 SemanticPrior.PriorE: 1
-# Prior weight
-SemanticPrior.Weight: 1
-# Ground Plane Contrain weight
-SemanticPrior.GroundWeight: 2
 
 # deg
 Optimizer.Edges.3DConstrain.PlaneAngle.Sigma: 100
@@ -189,7 +185,7 @@ Dataset.UseGroundtruth: 1
 # ------------------------------
 #  Probabilistic Data Association
 # ------------------------------
-# 
+#
 DataAssociation.DPAlpha: 0.1
 DataAssociation.PlaneError.DisSigma: 0.5
 
@@ -227,10 +223,10 @@ EllipsoidExtraction.Symmetry.GridSize: 0.1
 # Parameters for symmetry probability
 SymmetrySolver.Sigma: 0.1
 
-# ----------------------------------
-# Symmetry types of semantic labels
-# ----------------------------------
-  
+  # ----------------------------------
+  # Symmetry types of semantic labels
+  # ----------------------------------
+
 # Please see the definitions in the function:
 # EllipsoidExtractor::LoadSymmetryPrior()
 
@@ -276,6 +272,12 @@ Visualization.Builder.Global.Open: 1
 # when >0, filter using dis to groundplane
 Visualization.Map.Filter.DisThresh: 2.3
 
+
+
+
+
+
+
 #------------------
 # ORB相关参数： ORB Parameters
 #------------------
@@ -306,3 +308,87 @@ Viewer.ViewpointX: 0
 Viewer.ViewpointY: -10   # originally -10
 Viewer.ViewpointZ: -0.1
 Viewer.ViewpointF: 2000
+
+Viewer.UsePangolin: 1
+
+
+
+
+
+
+
+
+
+#--------------------------------------------------------------------------------------------
+# 整合
+#--------------------------------------------------------------------------------------------
+
+
+ConstraintType: 1 #3 rostf; 2 imu; 1 yaml
+
+# 机器人相对于world的初始位置
+# 俯视30度
+# Tworld_camera.qw: -0.364187
+# Tworld_camera.qx: 0.606109
+# Tworld_camera.qy: 0.606109
+# Tworld_camera.qz: -0.364187
+#  俯视0度
+# Tworld_camera.qw: 0.430
+# Tworld_camera.qx: 0.561
+# Tworld_camera.qy: 0.561
+# Tworld_camera.qz: 0.430
+#  俯视0度
+# Tworld_camera.qw: 0.478
+# Tworld_camera.qx: 0.521
+# Tworld_camera.qy: 0.521
+# Tworld_camera.qz: 0.478
+
+Tworld_camera.tx: 0.0
+Tworld_camera.ty: 0.0
+Tworld_camera.tz: 1.0  #this height is 0.2 higher than the height in gazebo
+
+#
+# 俯视10度
+# Tworld_camera.qw: 0.454
+# Tworld_camera.qx: -0.541
+# Tworld_camera.qy: -0.541
+# Tworld_camera.qz: 0.454
+# 俯视20度
+# Tworld_camera.qw:  0.406
+# Tworld_camera.qx: -0.579
+# Tworld_camera.qy: -0.579
+# Tworld_camera.qz:  0.406
+# 俯视15度
+#Tworld_camera.qw:  0.430
+#Tworld_camera.qx: -0.561
+#Tworld_camera.qy: -0.561
+#Tworld_camera.qz:  0.430
+#  俯视0度
+# Tworld_camera.qw:  0.500
+# Tworld_camera.qx: -0.500
+# Tworld_camera.qy: -0.500
+# Tworld_camera.qz:  0.500
+#  俯视0.25弧度
+Tworld_camera.qw:  -0.4335
+Tworld_camera.qx: 0.5585
+Tworld_camera.qy: -0.5585
+Tworld_camera.qz:  0.4335
+
+
+OptimizeEllipsoidWithMultiPlanes.gap: 30
+OptimizeEllipsoidWithMultiPlanes.debug_init_guess: 5
+
+OptimizeEllipsoidWithMultiPlanes.dis_thresh_near: 0.7
+OptimizeEllipsoidWithMultiPlanes.dis_thresh_far: 2.5
+SemanticPrior.useFar_vertical: 1
+SemanticPrior.useFar: 1
+SemanticPrior.useNear_vertical: 1
+SemanticPrior.useNear: 1
+frame_by_frame_zhjd: 0
+SemanticPrior.usePrior: 1
+SemanticPrior.Weight: 0.1    # Prior weight  注意原yaml中还有一个这个，注意删除
+SemanticPrior.GroundWeight: 1   # Ground Plane Contrain weight  注意原yaml中还有一个这个，注意删除
+optimizeEllipsoidWithMultiPlanes.optimizeEllipsoidWithMultiPlanes: 1
+
+ComputeCuboidPCA.scale: 0.8    #1.2 官方
+ComputeCuboidPCA.outlierDistance: 0.8   #1.0 官方
