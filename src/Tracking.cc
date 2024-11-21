@@ -1280,7 +1280,7 @@ void Tracking::CreateNewKeyFrame()
         GetObjectDetectionsLiDAR(pKF);
         if (!mpMap->GetAllMapObjects().empty())
         {
-            ObjectDataAssociation(pKF);
+            ObjectDataAssociation_onlyforstereo(pKF);
         }
     }
     else if (mSensor == System::MONOCULAR)

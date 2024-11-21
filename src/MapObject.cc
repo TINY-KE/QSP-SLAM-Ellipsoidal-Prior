@@ -529,30 +529,25 @@ g2o::ellipsoid* MapObject::GetEllipsold()
 
 void MapObject::SetPoseByEllipsold(g2o::ellipsoid* e)
 {
-    std::cout<<"[zhjd-debug] SetPoseByEllipsold"<<std::endl;
     Eigen::Matrix4f Two;
 
-    {
-
-    
-    // cout << "In SetPoseByEllipsold, e->prob = " << e->prob << endl;
     if(mpEllipsold == NULL) {
         {
             // 这里遇到了一个死锁的问题
             unique_lock<mutex> lock(mMutexObject);
             mpEllipsold = new g2o::ellipsoid(*(e));
         }
-        
+
         // mpEllipsold = e;
         // this->SetBadFlag();
         cout << "mpEllipsold->prob = " << mpEllipsold->prob << endl;
-        
+
     }
     // 这里遇到了一个死锁的问题
     unique_lock<mutex> lock(mMutexObject);
 
     mbValidEllipsoldFlag = true;
-    // else  
+    // else
     cout << "MapObject::SetPoseByEllipsold, Object_id = " << mnId << endl;
     cout << "MapObject::SetPoseByEllipsold, mpEllipsold->prob = " << mpEllipsold->prob << endl;
 
@@ -566,7 +561,7 @@ void MapObject::SetPoseByEllipsold(g2o::ellipsoid* e)
     Vector3d& scale = e->scale;
     float s = scale.norm() * 2;
 
-    // Rx(90)*Ry(-90) 
+    // Rx(90)*Ry(-90)
     Eigen::Matrix3f Ron = Eigen::AngleAxisf(M_PI/2, Eigen::Vector3f(1,0,0)).matrix()
         * Eigen::AngleAxisf(-M_PI/2, Eigen::Vector3f(0,1,0)).matrix();
     Two.topLeftCorner(3, 3) = Two.topLeftCorner(3, 3) * Ron;
@@ -582,7 +577,6 @@ void MapObject::SetPoseByEllipsold(g2o::ellipsoid* e)
 
     // std::cout << "Setting scale = " << e->scale.transpose().matrix() << std::endl;
     // cout << "in setPoseByEllipsold: Two = \n" << Two.matrix() << endl;
-    }
     SetObjectPoseSim3(Two); // Two
 }
 
