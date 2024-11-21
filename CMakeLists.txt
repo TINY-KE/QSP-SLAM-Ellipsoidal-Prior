@@ -5,10 +5,9 @@ cmake_minimum_required(VERSION 3.2)
 # c++ version
 set(CMAKE_CXX_STANDARD 17)
 
-set(cv_bridge_DIR "/home/zhjd/thirdparty/vision_opencv-indigo/cv_bridge/cmake")
+#set(cv_bridge_DIR "/home/robotlab/thirdparty/for_dspslam/vision_opencv-indigo/cv_bridge/build")
 find_package(catkin REQUIRED COMPONENTS
         roscpp
-        #        cv_bridge
         sensor_msgs
         #        image_transport
         std_msgs
@@ -18,6 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
         #        pcl_ros
         #        pcl_conversions
 
+#        cv_bridge
 )
 
 catkin_package(
@@ -267,3 +267,15 @@ target_link_libraries(qsp_slam_mono ${PROJECT_NAME})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
 add_executable(qsp_slam_rgbd qsp_slam_rgbd.cc)
 target_link_libraries(qsp_slam_rgbd ${PROJECT_NAME})
+
+#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
+#add_executable(ros_qsp_slam_rgbd ros_qsp_slam_rgbd.cpp)
+#target_link_libraries(ros_qsp_slam_rgbd ${PROJECT_NAME})
+
+#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
+#add_executable(image_grabber_node image_grabber_node.cpp)
+### 链接目标文件与catkin库和OpenCV库
+#target_link_libraries(image_grabber_node
+#        ${catkin_LIBRARIES}
+#        ${OpenCV_LIBRARIES}
+#)

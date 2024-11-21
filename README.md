@@ -2,7 +2,8 @@
     + eigen用的是ubuntu20自带的 337版本
     + DBow2  
         cmake -DOpenCV_DIR="/home/robotlab/thirdparty/for_dspslam/opencv/build" ..
-    + 
+    + openc使用的是DSP推荐的3.4
+
 
 # 恢复单目,但物体检测结果待筛选 commit d4ec5517bcfad64dd372450c6f1653790c337862
     + 编译qsp_slam_mono
@@ -100,7 +101,10 @@
 + CreateNewObjectsFromDetections()中判定为new的det都会被创建为物体，并添加到map中
   + AssociateObjectsByProjection中，如果没有与地图中的物体关联在一起，则认为是新物体
 + 待：在深度模式中添加infer
-+ 
++ 待：使用线程锁住
+  + unique_lock<mutex> lock(mpMap->mMutexMapUpdate);
+  + public: std::mutex mMutexMapUpdate;
++ 待：
 
 + 待：dsp物体生成时，旋转椭球体，与地面进行对比
 + 待：修改，提升slam速度。System.LocalMappingInSameThread: 1
