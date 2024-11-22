@@ -114,7 +114,7 @@ public:
     // KITTI (stereo+LiDAR)
     // 获得双目+激光雷达点云的检测结果，创建对应的物体观测和地图物体，添加到相应关键帧中
     void GetObjectDetectionsLiDAR(KeyFrame *pKF);
-    void ObjectDataAssociation_onlyforstereo(KeyFrame *pKF);
+    void ObjectDataAssociation(KeyFrame *pKF);
     // Freiburg Cars and Redwood (Mono)
     int maskErrosion;
     std::string detection_path;  // path to associated detected instances

@@ -280,11 +280,10 @@ void LocalMapping::Run()
 {
     InitSet();
     while(1) {
-        // 如果RunOneTime不能运行了（可能得原因，终端中终止了程序），则退出LocalMapping的循环。
         if (!RunOneTime()) {
             break;
         }
-        // std::this_thread::sleep_for(std::chrono::microseconds(3000));
+        std::this_thread::sleep_for(std::chrono::microseconds(3000));
     }
     SetFinish();
 }

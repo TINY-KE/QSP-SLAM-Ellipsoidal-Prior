@@ -202,7 +202,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const st
         mbMapInSameThread = fSettings["System.LocalMappingInSameThread"];
     }
 
-    if (!mbMapInSameThread) {
+    if (!mbMapInSameThread) {  //单目模式
         mptLocalMapping = new thread(&ORB_SLAM2::LocalMapping::Run, mpLocalMapper);
     }
     else {

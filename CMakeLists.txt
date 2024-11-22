@@ -5,19 +5,14 @@ cmake_minimum_required(VERSION 3.2)
 # c++ version
 set(CMAKE_CXX_STANDARD 17)
 
-#set(cv_bridge_DIR "/home/robotlab/thirdparty/for_dspslam/vision_opencv-indigo/cv_bridge/build")
+set(cv_bridge_DIR /usr/local/share/cv_bridge/cmake)
 find_package(catkin REQUIRED COMPONENTS
         roscpp
+        cv_bridge
         sensor_msgs
         #        image_transport
         std_msgs
         tf
-
-        # plane
-        #        pcl_ros
-        #        pcl_conversions
-
-#        cv_bridge
 )
 
 catkin_package(
@@ -55,7 +50,14 @@ set(PYTHON_LIBRARIES  "/home/robotlab/anaconda3/envs/dsp-slam/lib/libpython3.7m.
 set(PYTHON_INCLUDE_DIRS  "/home/robotlab/anaconda3/envs/dsp-slam/include/python3.7m")
 set(PYTHON_EXECUTABLE  "/home/robotlab/anaconda3/envs/dsp-slam/bin/python3.7")
 
+
 find_package(OpenCV 3.4.1 REQUIRED)
+#set(cv_bridge_DIR "/home/robotlab/thirdparty/for_dspslam/vision_opencv/cv_bridge/build")
+#set(cv_bridge_DIR "/home/robotlab/thirdparty/for_dspslam/vision_opencv/cv_bridge-indigo/build")
+#set(cv_bridge_DIR /usr/local/share/cv_bridge/cmake)
+#find_package(
+#        cv_bridge
+#)
 find_package(Eigen3 3.3.0 REQUIRED)
 find_package(Pangolin REQUIRED)
 include_directories(/usr/include/eigen3)
@@ -97,7 +99,6 @@ list(REMOVE_ITEM PCL_LIBRARIES "vtkproj4")
 ADD_DEFINITIONS( ${PCL_DEFINITIONS} )
 INCLUDE_DIRECTORIES( ${PCL_INCLUDE_DIRS}  )
 LINK_LIBRARIES( ${PCL_LIBRARY_DIRS} )
-
 
 
 
@@ -268,14 +269,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
 add_executable(qsp_slam_rgbd qsp_slam_rgbd.cc)
 target_link_libraries(qsp_slam_rgbd ${PROJECT_NAME})
 
-#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
-#add_executable(ros_qsp_slam_rgbd ros_qsp_slam_rgbd.cpp)
-#target_link_libraries(ros_qsp_slam_rgbd ${PROJECT_NAME})
-
-#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
-#add_executable(image_grabber_node image_grabber_node.cpp)
-### 链接目标文件与catkin库和OpenCV库
-#target_link_libraries(image_grabber_node
-#        ${catkin_LIBRARIES}
-#        ${OpenCV_LIBRARIES}
-#)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
+add_executable(save save.cpp)
+target_link_libraries(save ${catkin_LIBRARIES}  ${PROJECT_NAME})

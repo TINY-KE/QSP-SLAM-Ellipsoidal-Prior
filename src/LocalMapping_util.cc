@@ -569,18 +569,21 @@ void LocalMapping::ProcessDetectedObjects()
     // 处理当前关键帧的所有detection
     for (int det_i = 0; det_i < mvpObjectDetections.size(); det_i++)
     {
-        // 遍历当前关键帧中的物体检测，det 是当前检测到的物体，pMO 是与该检测相关联的地图物体。
-        auto det = mvpObjectDetections[det_i];
-        MapObject *pMO_associated_inMap = mvpAssociatedObjects[det_i];
+        std::cout << "\n=> det_i " << det_i+1 << "/" << mvpObjectDetections.size() << std::endl;
+        // std::cout << "Press [ENTER] to continue ... " << std::endl;
+        // key = getchar();
 
+        auto det = mvpObjectDetections[det_i];
+        MapObject *pMO = mvpAssociatedObjects[det_i];
+        
 
         // If the detection is associated with an existing map object, we consider 2 different situations:
         // 1. 物体已经被重建： 更新观测
         // 2. 物体尚未被重建： 检查是否准备好重建，如果有足够多点则进行重建
-
+        
         /**
          * 如果:
-         *   (1) 该检测尚未与地图物体关联
+         *   (1) 该检测尚未与地图物体关联 
          *   (2) 该检测包含的特征点数量较少
          *   (3) 该检测关联的物体为NULL
          * 则 continue
@@ -623,82 +626,100 @@ void LocalMapping::ProcessDetectedObjects()
             continue;
         }
 
-        if (!pMO_associated_inMap) {
+        if (!pMO) {
             std::cout << "  Conitinue because !pMO" << std::endl;
             continue;
         }
 
         /** 这里人为规定了只考虑编号为0（中间的）的物体 */
-        if (pMO_associated_inMap->mnId != 0 && create_single_object) {
+        if (pMO->mnId != 0 && create_single_object) {
             std::cout << "  Conitinue because pMO->mnId != 0" << std::endl;
             continue;
         }
 
+        std::cout << "pMO->mnId = " << pMO->mnId << std::endl;
 
-        // 4. 更新物体的点云： 把深度点云加到地图物体中
+        // 把深度点云加到地图物体中
         if (add_depth_pcd_to_map_object) {
-            pMO_associated_inMap->AddDepthPointCloudFromObjectDetection(det);
+            pMO->AddDepthPointCloudFromObjectDetection(det);
+            // cout << "AddDepthPointCloudFromObjectDetection" << endl;
         }
 
-        int numKFsPassedSinceInit = int(mpCurrentKeyFrame->mnId - pMO_associated_inMap->mpRefKF->mnId);
+        // std::cout << "use_ellipsold_pose_for_shape_optimization = " << \
+        //     use_ellipsold_pose_for_shape_optimization << std::endl;
+
+        int numKFsPassedSinceInit = int(mpCurrentKeyFrame->mnId - pMO->mpRefKF->mnId);
 
         std::cout << "pMO's mpRefKF / curKF / passedKF = " \
-                  << pMO_associated_inMap->mpRefKF->mnId << " / " \
+                  << pMO->mpRefKF->mnId << " / " \
                   << mpCurrentKeyFrame->mnId << " / " << numKFsPassedSinceInit << std::endl;
 
+        // bool isShortInternal = numKFsPassedSinceInit < 15;
+        // std::string condition_str = "numKFsPassedSinceInit < 15";
+
+        bool isShortInternal = numKFsPassedSinceInit < 15 and (mpCurrentKeyFrame->mnId >= 3);
         std::string condition_str = "numKFsPassedSinceInit < 15 and (mpCurrentKeyFrame->mnId >= 3)";
 
         /**
          * 在物体被初始化的时间间隔的过程中：
          * （1) 少于 50 帧（尚未获得较好形状）：持续进行初始位姿设置
          * （2) 大于 50 帧（有较好形状）：仅进行外点剔除
-         *
-         *
+         * 
+         *  
          * 需要增加逻辑：
          * （1) 第一次设置位姿时，直接使用椭球体位姿
          *       物体在隐式形状优化过程中选择了最佳朝向。
          * （2）在非首次的处理过程中，如何使用椭球体位姿？
-         *
+         *       
          */
+        
 
-        // 5. 物体形状优化与重建
         // FIXME: 这里可以选择，在使用椭球体模式下，如果没有成功估计椭球体，就跳过物体优化
-        if (numKFsPassedSinceInit < 50 && !pMO_associated_inMap->reconstructed) {
+        if (numKFsPassedSinceInit < 50 && !pMO->reconstructed) {
             if (!use_ellipsold_pose_for_shape_optimization) {
                 std::cout << "ComputeCuboidPCA" << std::endl;
-                pMO_associated_inMap->ComputeCuboidPCA(numKFsPassedSinceInit < 15);
+                pMO->ComputeCuboidPCA(numKFsPassedSinceInit < 15);
             }
             else{
                 if (mvpGlobalEllipsolds[det_i] == NULL) {
                     cout << "mvpGlobalEllipsolds[" << det_i << "] == NULL" << endl;
-                    pMO_associated_inMap->SetBadFlag();
+                    pMO->SetBadFlag();
                 }
                 else{
                     // Method 2: 使用来自椭球体的位姿信息
                     std::cout << "SetPoseByEllipsold" << std::endl;
-                    pMO_associated_inMap->SetPoseByEllipsold(mvpGlobalEllipsolds[det_i]);
+                    pMO->SetPoseByEllipsold(mvpGlobalEllipsolds[det_i]);
                 }
             }
 
         }
         else { // when we have relative good object shape
             std::cout << "RemoveOutliersModel" << std::endl;
-            pMO_associated_inMap->RemoveOutliersModel();
+            pMO->RemoveOutliersModel();
         }
+        
+        // // only begin to reconstruct the object if it is observed for enough amoubt of time (15 KFs)
+        // // 只在观测间隔了足够数量
+        // if(isShortInternal) {
+        //     std::cout << "  Conitinue because " << condition_str << std::endl;
+        //     continue;
+        // }
 
-        // 6. 物体只有在关键帧的观察时间间隔为5的倍数时才会进行重建处理，以减少过度优化的次数。
+        /**
+         * 为了减少优化次数，只在 passedKF 为5的倍数时处理
+        */
         if ((numKFsPassedSinceInit - 15) % 5 != 0) {
             std::cout << "  Conitinue because (numKFsPassedSinceInit - 15) % 5 != 0" << std::endl;
             continue;
         }
 
-        std::vector<MapPoint*> points_on_object = pMO_associated_inMap->GetMapPointsOnObject();
+        std::vector<MapPoint*> points_on_object = pMO->GetMapPointsOnObject();
         int n_points = points_on_object.size();
         int n_valid_points = 0;
 
         if (add_depth_pcd_to_map_object && use_depth_pcd_to_reconstruct){
 
-            std::shared_ptr<PointCloud> mPointsPtr = pMO_associated_inMap->GetPointCloud();
+            std::shared_ptr<PointCloud> mPointsPtr = pMO->GetPointCloud();
             PointCloud* pPoints = mPointsPtr.get();
 
             // auto points = pMO->GetPointCloud();
@@ -728,7 +749,7 @@ void LocalMapping::ProcessDetectedObjects()
                 continue;
             if (pMP->isBad())
                 continue;
-            if (pMP->object_id != pMO_associated_inMap->mnId)
+            if (pMP->object_id != pMO->mnId)
                 continue;
             if (pMP->isOutlier())
                 continue;
@@ -737,15 +758,15 @@ void LocalMapping::ProcessDetectedObjects()
 
         int n_background_ray = det->background_rays.rows();
 
-        cout << "\n==> Object " << pMO_associated_inMap->mnId << ": " \
+        cout << "\n==> Object " << pMO->mnId << ": " \
              << n_points << " points observed, " << "with " \
              << n_valid_points << " valid points, " \
              << n_rays << " rays, and " \
              << n_background_ray << " back_ground_rays" \
              << endl;
 
-        // 7. 物体重建准备
         // Surface points
+        // std::cout << " =>" << "n_valid_points: " << n_valid_points << ", n_rays: " << n_rays << std::endl;
         if (n_valid_points >= min_valid_points && n_rays > min_valid_rays)
         {
             //！获取surface_points_cam
@@ -755,7 +776,7 @@ void LocalMapping::ProcessDetectedObjects()
 
             if (add_depth_pcd_to_map_object && use_depth_pcd_to_reconstruct)
             {
-                std::shared_ptr<PointCloud> mPointsPtr = pMO_associated_inMap->GetPointCloud();
+                std::shared_ptr<PointCloud> mPointsPtr = pMO->GetPointCloud();
                 PointCloud* pPoints = mPointsPtr.get();
 
                 for(int i=0; i<pPoints->size(); i=i+1)
@@ -808,7 +829,7 @@ void LocalMapping::ProcessDetectedObjects()
                     continue;
                 if(pMP->isBad())
                     continue;
-                if(pMP->object_id != pMO_associated_inMap->mnId)
+                if(pMP->object_id != pMO->mnId)
                     continue;
                 if (pMP->isOutlier())
                     continue;
@@ -840,7 +861,7 @@ void LocalMapping::ProcessDetectedObjects()
 
             /**
              * 表面点与射线数据准备完毕，下面进行物体重建
-             *
+             * 
             */
             std::cout << "!!! Ready to reconstruct_object !!!" << std::endl;
 
@@ -849,7 +870,7 @@ void LocalMapping::ProcessDetectedObjects()
             // std::cout << "mpCurrentKeyFrame->pose = \n" << SE3Tcw.matrix() << std::endl;
             // std::cout << "pMO->Sim3Two = \n" << pMO->Sim3Two.matrix() << std::endl;
 
-            auto Sim3Two_pMO = pMO_associated_inMap->Sim3Two;
+            auto Sim3Two_pMO = pMO->Sim3Two;
 
             Eigen::Matrix4f Sim3Two_raw = Sim3Two_pMO;
 
@@ -867,34 +888,38 @@ void LocalMapping::ProcessDetectedObjects()
                 optimizer_ptr = optimizer_ptr_local;
             }
 
-            // 8. 物体重建
             cout << "Before reconstruct_object" << std::endl;
+
             auto pyMapObject = optimizer_ptr->attr("reconstruct_object")
-                    (SE3Tcw * Sim3Two_pMO, surface_points_cam, rays, depth_obs, pMO_associated_inMap->vShapeCode);
+                    (SE3Tcw * Sim3Two_pMO, surface_points_cam, rays, depth_obs, pMO->vShapeCode);
+
+            // std::cout << "0 rad, is_good: " << pyMapObject.attr("is_good").cast<bool>()\
+            //           << ", loss: " << pyMapObject.attr("loss").cast<float>() << std::endl;
 
             auto& pyMapObjectLeastLoss = pyMapObject;
 
-            // 9. 寻找物体的最佳朝向
-            if (!pMO_associated_inMap->findGoodOrientation)
+            if (!pMO->findGoodOrientation)
             {
                 // 绕y轴进行采样，可以直接附加到Two上
                 std::cout << "Has not found good orientation yet." << std::endl;
                 std::vector<float> losses(flip_sample_num);
                 losses[0] = pyMapObject.attr("loss").cast<float>();
-
+                
                 for (int i_rot = 1; i_rot < flip_sample_num; i_rot++) {
 
                     auto flipped_Two = Sim3Two_pMO;
-                    // 生成一个绕Y轴旋转的矩阵
                     Eigen::Matrix3f Ry = Eigen::AngleAxisf(double(i_rot) * flip_sample_angle, \
                                                 Eigen::Vector3f(0,1,0)).matrix();
 
                     flipped_Two.topLeftCorner(3,3) = flipped_Two.topLeftCorner(3,3) * Ry;
                     // cout << " => flipped_Two = " << flipped_Two.matrix() << std::endl;
 
-                    auto pyMapObjectFlipped = optimizer_ptr->attr("reconstruct_object")
-                            (SE3Tcw * flipped_Two, surface_points_cam, rays, depth_obs, pMO_associated_inMap->vShapeCode);
+                    // auto pyMapObjectFlipped = pyOptimizer.attr(">>>reconstruct_object")
+                    //         (SE3Tcw * flipped_Two, surface_points_cam, rays, depth_obs, pMO->vShapeCode);
 
+                    auto pyMapObjectFlipped = optimizer_ptr->attr("reconstruct_object")
+                            (SE3Tcw * flipped_Two, surface_points_cam, rays, depth_obs, pMO->vShapeCode);
+                    
                     // std::cout << "Loss: " << pyMapObjectFlipped.attr("loss").cast<float>() << std::endl;
                     losses[i_rot] = pyMapObjectFlipped.attr("loss").cast<float>();
 
@@ -915,11 +940,11 @@ void LocalMapping::ProcessDetectedObjects()
                     }
                 }
                 // todo: to Judge whether good orientation has been found
-                // std::cout << "# Losses: ";
-                // for (auto &loss: losses) {
-                //     std::cout << loss << ",";
-                // }
-                // std::cout << std::endl;
+                std::cout << "# Losses: ";
+                for (auto &loss: losses) {
+                    std::cout << loss << ",";
+                }
+                std::cout << std::endl;
             }
 
             auto t_cam_obj = pyMapObjectLeastLoss.attr("t_cam_obj");
@@ -927,14 +952,18 @@ void LocalMapping::ProcessDetectedObjects()
             if (t_cam_obj.is_none()) {
                 std::cout << "!!!! Output t_cam_obj == None, reconstruction failed." << std::endl;
                 std::cout << "Sim3Two_raw = " << Sim3Two_raw.matrix() << std::endl;
-                std::cout << "pMO->SE3Two = " << pMO_associated_inMap->SE3Two.matrix() << std::endl;
-                std::cout << "pMO->scale = " << pMO_associated_inMap->scale << std::endl;
+                std::cout << "pMO->SE3Two = " << pMO->SE3Two.matrix() << std::endl;
+                std::cout << "pMO->scale = " << pMO->scale << std::endl;
                 continue;
             }
             auto Sim3Tco = t_cam_obj.cast<Eigen::Matrix4f>();
 
-            std::cout << "Reconstruction successed" << std::endl;
+            // std::cout << "Sim3Tco = " << Sim3Tco.matrix() << std::endl;
 
+            // auto Sim3Tco = SE3Tcw * pMO->Sim3Two;
+
+            std::cout << "Reconstruction successed" << std::endl;
+            
             // 设置检测结果的位姿测量
             det->SetPoseMeasurementSim3(Sim3Tco);
             // Sim3, SE3, Sim3
@@ -959,21 +988,22 @@ void LocalMapping::ProcessDetectedObjects()
             }
 
             /**
-             * 更新物体属性：
+             * 更新物体属性： 
              * - 位姿、编码、网格顶点、网格面片、
              * - 是否已重建、（关键帧，检测索引）
              * 向 当前关键帧、物体绘制器 添加物体
             */
-
-            // 10. 更新物体模型
+            
             if (keep_raw_pose) {
                 cout << "Draw Sim3Two_raw " << endl;
-                pMO_associated_inMap->UpdateReconstruction(Sim3Two_raw, code);
+                pMO->UpdateReconstruction(Sim3Two_raw, code);
             }
             else {
-                pMO_associated_inMap->UpdateReconstruction(Sim3Two, code);
-
+                pMO->UpdateReconstruction(Sim3Two, code);
+                
             }
+
+            // auto pyMesh = pyMeshExtractor.attr("extract_mesh_from_code")(code);
 
             py::object* mesh_extracter_ptr;
             if(mmPyOptimizers.count(class_id) > 0) {
@@ -987,20 +1017,23 @@ void LocalMapping::ProcessDetectedObjects()
                 mesh_extracter_ptr = mesh_extracter_ptr_local;
             }
 
-            // 11.更新重建结果：物体重建完成后，更新物体的位姿、编码、顶点和面片数据。extract_mesh_from_code 是一个从重建编码中提取物体网格的函数。
             auto pyMesh = mesh_extracter_ptr->attr("extract_mesh_from_code")(code);
-            pMO_associated_inMap->vertices = pyMesh.attr("vertices").cast<Eigen::MatrixXf>();
-            pMO_associated_inMap->faces = pyMesh.attr("faces").cast<Eigen::MatrixXi>();
-            // 标记：物体重建已经完成。
-            pMO_associated_inMap->reconstructed = true;
-            pMO_associated_inMap->AddObservation(mpCurrentKeyFrame, det_i);
-            mpCurrentKeyFrame->AddMapObject(pMO_associated_inMap, det_i);
-            mpObjectDrawer->AddObject(pMO_associated_inMap);
 
-            mlpRecentAddedMapObjects.push_back(pMO_associated_inMap);
+            pMO->vertices = pyMesh.attr("vertices").cast<Eigen::MatrixXf>();
+            pMO->faces = pyMesh.attr("faces").cast<Eigen::MatrixXi>();
+            pMO->reconstructed = true;
+            pMO->AddObservation(mpCurrentKeyFrame, det_i);
+            mpCurrentKeyFrame->AddMapObject(pMO, det_i);
+            mpObjectDrawer->AddObject(pMO);
+
+            mlpRecentAddedMapObjects.push_back(pMO);
 
             nLastReconKFID = int(mpCurrentKeyFrame->mnId);
 
+            // std::cout << "Finish reconstructing one object" << std::endl;
+
+            // std::cout << "Press [ENTER] to continue ... " << std::endl;
+            // key = getchar();
         }
     }
 
@@ -1017,7 +1050,12 @@ void LocalMapping::ProcessDetectedObjects()
 
         cv::destroyWindow("Image with Bbox");
     }
+
+
     
+    // if (show_ellipsold_process && mvpObjectDetections.size()){
+    //     cv::destroyWindow("Image with Bbox");
+    // }
 }
 
 void LocalMapping::UpdateObjectsToMap()

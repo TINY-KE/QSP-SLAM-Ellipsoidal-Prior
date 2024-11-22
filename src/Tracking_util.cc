@@ -77,9 +77,9 @@ void Tracking::GetObjectDetectionsLiDAR(KeyFrame *pKF) {
 /**
  * （双目+Lidar）物体数据关联
  *  建立观测与地图物体之间的关联
- *  zhjd: 与localmap中其他物体相比较，如果距离小于0.5，则认为是同一个物体，关联在一起。
+ *  zhjd: 不是只能创建一个新物体？
 */
-void Tracking::ObjectDataAssociation_onlyforstereo(KeyFrame *pKF)
+void Tracking::ObjectDataAssociation(KeyFrame *pKF)
 {
 
     /**

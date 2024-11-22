@@ -2,8 +2,7 @@
     + eigen用的是ubuntu20自带的 337版本
     + DBow2  
         cmake -DOpenCV_DIR="/home/robotlab/thirdparty/for_dspslam/opencv/build" ..
-    + openc使用的是DSP推荐的3.4
-
+    + 
 
 # 恢复单目,但物体检测结果待筛选 commit d4ec5517bcfad64dd372450c6f1653790c337862
     + 编译qsp_slam_mono
@@ -81,30 +80,9 @@
     + pKF->mpGlobalEllipsolds
     + 图像帧中存储的椭圆在AssociateObjectsByProjection没用到，使用的是地图中的物体对应的椭球，
     + 因此，图像帧中存储的椭圆应该是在localmap中使用
-    + 答：
 + 关联在一起的椭球体是怎么融合的？？
-  + if (add_depth_pcd_to_map_object) {
-    pMO->AddDepthPointCloudFromObjectDetection(det);
-    // cout << "AddDepthPointCloudFromObjectDetection" << endl;
-    }
-+ mpCurrentKeyFrame 是怎么更新的？
-  + 答：通过 LocalMapping::ProcessNewKeyFrame()
-+ 当前帧中每个物体只能关联到一个物体吗？mpCurrentKeyFrame->GetMapObjectMatches();
-  + 答：印象里是这样的，找一个距离最近的。
-  + 问：会不会关联错误？？
-+ 当前帧观测到的物体，如何与地图中的物体，联合关联
-  + 答：pMO->SetPoseByEllipsold(mvpGlobalEllipsolds[det_i]);
-+ add_depth_pcd_to_map_object  是什么？
-  + 答：用点云来生成物体
-+ 生成一个绕Y轴旋转的矩阵
-  + 问：为什么在findGoodOrientation时，只绕着y轴旋转
-+ CreateNewObjectsFromDetections()中判定为new的det都会被创建为物体，并添加到map中
-  + AssociateObjectsByProjection中，如果没有与地图中的物体关联在一起，则认为是新物体
 + 待：在深度模式中添加infer
-+ 待：使用线程锁住
-  + unique_lock<mutex> lock(mpMap->mMutexMapUpdate);
-  + public: std::mutex mMutexMapUpdate;
-+ 待：
++ 
 
 + 待：dsp物体生成时，旋转椭球体，与地面进行对比
 + 待：修改，提升slam速度。System.LocalMappingInSameThread: 1

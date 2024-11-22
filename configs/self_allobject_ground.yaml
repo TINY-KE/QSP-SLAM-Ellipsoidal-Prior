@@ -4,7 +4,7 @@ CreateSingleObject: 0
 MinimumMatchToAssociate: 10
 Tracking.ShowEllipsoldProcess: 0
 LocalMapping.ShowEllipsoldProcess: 0
-LocalMapping.KeepRawPose: 0   #keep_raw_pose
+LocalMapping.KeepRawPose: 0
 Tracking.AddSuffixToPcd: 0
 Tracking.AssociateObjectWithEllipsold: 1   #associate_object_with_ellipsold
 Tracking.AssociateDebug: 0
@@ -95,7 +95,7 @@ System.output: KeyFrameTrajectoryRGBD.txt
 # System.mode: MONOCULAR
 # System.output: KeyFrameTrajectoryMONO.txt
 
-System.LocalMappingInSameThread: 0   # runonetime   mbMapInSameThread
+System.LocalMappingInSameThread: 1
 
 #---------------------------
 # Camera Parameters.
@@ -147,11 +147,11 @@ DetectorConfigPath: configs/config_self_allobject_ground.json
 Objects.maskErrosion: 5
 
 
-System.UseEllipsoldPoseForDSP.Open: 1   #use_ellipsold_pose_for_shape_optimization
+System.UseEllipsoldPoseForDSP.Open: 1
 Running.skip_num: 2
 Running.total_ratio: 1.0
 
-flip_sample_num: 4   #flip_sample_num
+flip_sample_num: 4
 
 # [From EllipsoldSLAM]
 
