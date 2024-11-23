@@ -60,7 +60,7 @@
 
 #include "include/core/PriorInfer.h"
 #include "MapPublisher.h"
-
+#include "ImageGrabber.h"
 
 namespace ORB_SLAM2
 {
@@ -68,6 +68,7 @@ namespace ORB_SLAM2
 class Viewer;
 class FrameDrawer;
 class MapPublisher;
+class ImageGrabber;
 class Map;
 class LocalMapping;
 class LoopClosing;
@@ -101,6 +102,7 @@ public:
     void SetLocalMapper(LocalMapping* pLocalMapper);
     void SetLoopClosing(LoopClosing* pLoopClosing);
     void SetViewer(Viewer* pViewer);
+    void SetImageGrabber(ImageGrabber *pImageGrabber);
 
     // Load new settings
     // The focal lenght should be similar or scale prediction will fail when projecting points
@@ -273,6 +275,7 @@ protected:
     FrameDrawer* mpFrameDrawer;
     MapDrawer* mpMapDrawer;
     MapPublisher*  mpMapPublisher;
+    ImageGrabber* mpImageGrabber;
 
     //Map
     Map* mpMap;

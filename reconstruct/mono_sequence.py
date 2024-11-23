@@ -74,6 +74,7 @@ class Frame:
         
         self.frame_id = frame_id
         if frame_name==None:
+            print("[zhjd-debug]"+os.path.join(self.rgb_dir, "{:06d}".format(frame_id) + ".png"))
             rgb_file = os.path.join(self.rgb_dir, "{:06d}".format(frame_id) + ".png")
         else:
             rgb_file = os.path.join(self.root_dir, frame_name)
@@ -275,3 +276,23 @@ class MonoSequence:
 
         return self.detections_in_current_frame
 
+    def get_frame_for_ros(self, frame_id, frame_name):
+        print("[zhjd-debug] get_frame_for_ros")
+
+        show_cuda_memory("get_frame_for_ros head")
+
+        del self.current_frame
+        frame_id_default = 0
+        self.current_frame = Frame(self, frame_id = frame_id_default)
+
+        # print("Before get_detections")
+        self.current_frame.get_detections()
+
+        self.detections_in_current_frame = self.current_frame.instances
+
+        # del self.current_frame
+
+        show_cuda_memory("get_frame_by_name end")
+        print("[zhjd-debug] get_frame_for_ros END")
+
+        return self.detections_in_current_frame

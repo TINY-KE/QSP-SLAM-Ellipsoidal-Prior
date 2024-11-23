@@ -82,7 +82,8 @@
     + 因此，图像帧中存储的椭圆应该是在localmap中使用
 + 关联在一起的椭球体是怎么融合的？？
 + 待：在深度模式中添加infer
-+ 
+
++ 改为在detections= mpSystem->pySequence.attr("get_frame_for_ros")(pKF->mnFrameId, frame_name)前，将cvmat存在本地
 
 + 待：dsp物体生成时，旋转椭球体，与地面进行对比
 + 待：修改，提升slam速度。System.LocalMappingInSameThread: 1

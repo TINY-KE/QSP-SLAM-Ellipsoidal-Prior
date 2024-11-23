@@ -183,16 +183,13 @@ System::System(const string &strVocFile, const string &strSettingsFile, const st
     mpTracker = new Tracking(this, mpVocabulary, mpFrameDrawer, mpMapDrawer, mpMapPublisher,
                              mpMap, mpKeyFrameDatabase, strSettingsFile, mSensor);
 
-    // 地平面 
-    // SetGroundPlaneMannually(Vector4d(0.00667181,  -0.015002,   0.999865,  0.0274608));
+    // 地平面
     mpTracker->SetGroundPlaneMannually(Vector4d(0,  0,   1,  0));
     mpMap->addPlane(&(mpTracker->mGroundPlane));
     
     //Initialize the Local Mapping thread and launch
     // Set an option: Multithread or single thread
-    
     mpLocalMapper = new LocalMapping(this, mpMap, mpObjectDrawer, mSensor==MONOCULAR);
-
 
 
     mbMapInSameThread = 0;
@@ -237,8 +234,9 @@ System::System(const string &strVocFile, const string &strSettingsFile, const st
 
     expMap = mpMap;
 
-    // // Release GIL
-    // PyEval_ReleaseThread(PyThreadState_Get());
+    // 增加图像保存
+    mpImageGrabber = new ImageGrabber(strSequencePath);
+    mpTracker->SetImageGrabber(mpImageGrabber);
 }
 
 cv::Mat System::TrackStereo(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timestamp)
@@ -289,6 +287,88 @@ cv::Mat System::TrackStereo(const cv::Mat &imLeft, const cv::Mat &imRight, const
     mTrackingState = mpTracker->mState;
     mTrackedMapPoints = mpTracker->mCurrentFrame.mvpMapPoints;
     mTrackedKeyPointsUn = mpTracker->mCurrentFrame.mvKeysUn;
+    return Tcw;
+}
+cv::Mat System::TrackRosRGBD(const string dataset_path, const double &timestamp) {
+
+    unique_lock<mutex> lock_ImageGrabber(mpImageGrabber->mMutexImageSave);
+
+    //! 读取图像
+    cv::Mat im, depthmap;
+    im = cv::imread(dataset_path+"/rgb/000000.png", CV_LOAD_IMAGE_UNCHANGED);
+    depthmap = cv::imread(dataset_path+"/depth/000000.png", CV_LOAD_IMAGE_UNCHANGED);
+
+    if(im.empty())
+    {
+        cerr << endl << "Failed to load image at: "
+             << dataset_path<<"/rgb/000000.png" << endl;
+    }
+
+    assert(imRGB.type()==16);
+    assert(imD.type()==2);
+
+    if(mSensor!=RGBD)
+    {
+        cerr << "ERROR: you called TrackRosRGBD but input sensor was not set to RGBD." << endl;
+        exit(-1);
+    }
+
+    // Check mode change
+    {
+        unique_lock<mutex> lock(mMutexMode);
+        if(mbActivateLocalizationMode)
+        {
+            mpLocalMapper->RequestStop();
+
+            // Wait until Local Mapping has effectively stopped
+            while(!mpLocalMapper->isStopped())
+            {
+                usleep(1000);
+            }
+
+            mpTracker->InformOnlyTracking(true);
+            mbActivateLocalizationMode = false;
+        }
+        if(mbDeactivateLocalizationMode)
+        {
+            mpTracker->InformOnlyTracking(false);
+            mpLocalMapper->Release();
+            mbDeactivateLocalizationMode = false;
+        }
+    }
+
+    // Check reset
+    {
+        unique_lock<mutex> lock(mMutexReset);
+        if(mbReset)
+        {
+            mpTracker->Reset();
+            mbReset = false;
+        }
+    }
+
+    // cout << "Before GrabImageRGBD" << endl;
+    // printMemoryUsage();
+
+    // KEY： 加入图像、深度和时间戳
+    cv::Mat Tcw = mpTracker->GrabImageRGBD(im,depthmap,timestamp);
+
+
+    // 更新状态
+    unique_lock<mutex> lock2(mMutexState);
+    mTrackingState = mpTracker->mState;
+    mTrackedMapPoints = mpTracker->mCurrentFrame.mvpMapPoints;
+    mTrackedKeyPointsUn = mpTracker->mCurrentFrame.mvKeysUn;
+
+    // 如果跟踪成功，则进行平面检测
+    if (mTrackingState==Tracking::OK) {
+
+    }
+
+    if (mbMapInSameThread) {
+        mpLocalMapper->RunOneTime();
+    }
+
     return Tcw;
 }
 

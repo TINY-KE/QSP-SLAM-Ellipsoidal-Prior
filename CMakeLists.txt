@@ -169,6 +169,7 @@ add_library(${PROJECT_NAME} SHARED
     src/ObjectDrawer.cc
     src/ObjectRenderer.cc
     src/MapPublisher.cc
+    src/ImageGrabber.cc
 
     src/Labeller.cc
 
@@ -184,8 +185,6 @@ add_library(${PROJECT_NAME} SHARED
     src/core/ConstrainPlane.cpp
 #     src/core/SemanticLabel.cpp
     src/core/PriorInfer.cpp
-
-
 )
 
 
@@ -270,5 +269,9 @@ add_executable(qsp_slam_rgbd qsp_slam_rgbd.cc)
 target_link_libraries(qsp_slam_rgbd ${PROJECT_NAME})
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
-add_executable(save save.cpp)
-target_link_libraries(save ${catkin_LIBRARIES}  ${PROJECT_NAME})
+add_executable(ros_qsp_slam_rgbd ros_qsp_slam_rgbd.cc)
+target_link_libraries(ros_qsp_slam_rgbd ${PROJECT_NAME})
+
+#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
+#add_executable(save save.cpp)
+#target_link_libraries(save ${catkin_LIBRARIES}  ${PROJECT_NAME})

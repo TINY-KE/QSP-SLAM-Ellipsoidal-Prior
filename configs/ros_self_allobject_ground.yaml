@@ -82,7 +82,7 @@ DecoderPaths: ["weights/deepsdf/chairs_64",
 
 # [Dataset Path]
 Dataset.Type: "Redwood"
-Dataset.Path.Root: "/media/robotlab/新加卷/ubuntu22/QSP-SLAM-all/MySimDataset/GroundObjects"
+Dataset.Path.Root: "/home/robotlab/ws_3d_vp/src/QSP-SLAM-Ellipsoidal-Prior/dataset/ros_realtime"
 Dataset.Path.Map: "./dataset.pcd"
 
 
@@ -393,4 +393,4 @@ optimizeEllipsoidWithMultiPlanes.optimizeEllipsoidWithMultiPlanes: 1
 ComputeCuboidPCA.scale: 0.8    #1.2 官方
 ComputeCuboidPCA.outlierDistance: 0.8   #1.0 官方
 
-use_for_ros: 0
+use_for_ros: 1

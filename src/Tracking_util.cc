@@ -311,18 +311,13 @@ void Tracking::GetObjectDetectionsRGBD(KeyFrame *pKF)
 
     std::string frame_name = mvstrImageFilenamesRGB[pKF->mnFrameId];
 
-    // std::cout << "frame_name = " << frame_name << std::endl;
-
-    // py::list detections = mpSystem->pySequence.attr("get_frame_by_id")(pKF->mnFrameId);
-
     // Get a series of object detections
-    // printMemoryUsage();
-    py::list detections = mpSystem->pySequence.attr("get_frame_by_name")(pKF->mnFrameId, frame_name);
-
-    // cout << "sizeof (detections) = " << sizeof(detections) << " bytes" << endl;
-
-    // cout << "Finish get_frame_by_name" << endl;
-    // printMemoryUsage();
+    bool use_for_ros = Config::Get<int>("use_for_ros");
+    py::list detections;
+    if (use_for_ros)
+        detections= mpSystem->pySequence.attr("get_frame_for_ros")(pKF->mnFrameId, frame_name);
+    else
+        detections= mpSystem->pySequence.attr("get_frame_by_name")(pKF->mnFrameId, frame_name);
 
     int num_dets = detections.size();
 

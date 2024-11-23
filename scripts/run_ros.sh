@@ -24,7 +24,6 @@
 
 ./ros_qsp_slam_rgbd \
 Vocabulary/ORBvoc.bin \
-configs/self_allobject_ground.yaml \
+configs/ros_self_allobject_ground.yaml \
 /home/robotlab/ws_3d_vp/src/QSP-SLAM-Ellipsoidal-Prior/dataset/ros_realtime \
-/home/robotlab/ws_3d_vp/src/QSP-SLAM-Ellipsoidal-Prior/dataset/ros_realtime/associate.txt \
 map/ros_realtime
