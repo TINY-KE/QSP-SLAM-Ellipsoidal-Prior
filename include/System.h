@@ -41,7 +41,6 @@
 #include "Viewer.h"
 
 #include "MapPublisher.h"
-#include "ImageGrabber.h"
 
 #include <pybind11/embed.h>
 #include <pybind11/eigen.h>
@@ -59,7 +58,7 @@ class Tracking;
 class LocalMapping;
 class LoopClosing;
 // class PlaneExtractor;
-class ImageGrabber;
+
 class PyThreadStateLock
 {
 public:
@@ -104,7 +103,6 @@ public:
     // Input depthmap: Float (CV_32F).
     // Returns the camera pose (empty if tracking fails).
     cv::Mat TrackRGBD(const cv::Mat &im, const cv::Mat &depthmap, const double &timestamp);
-    cv::Mat TrackRosRGBD(const string dataset_path, const double &timestamp);
 
     // Proccess the given monocular frame
     // Input images: RGB (CV_8UC3) or grayscale (CV_8U). RGB is converted to grayscale.
@@ -227,7 +225,6 @@ private:
     MapDrawer* mpMapDrawer;
     MapPublisher* mpMapPublisher;
     ObjectDrawer* mpObjectDrawer;
-    ImageGrabber* mpImageGrabber;
 
     // System threads: Local Mapping, Loop Closing, Viewer.
     // The Tracking thread "lives" in the main execution thread that creates the System object.
