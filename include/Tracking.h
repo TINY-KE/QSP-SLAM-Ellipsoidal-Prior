@@ -186,6 +186,7 @@ public:
 
     cv::Mat mImGray;
     cv::Mat mImDepth;
+
     vector<cv::Mat> mvImObjectMasks;
     vector<vector<int>> mvImObjectBboxs;
 

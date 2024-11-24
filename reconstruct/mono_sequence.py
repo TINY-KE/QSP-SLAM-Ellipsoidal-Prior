@@ -19,6 +19,8 @@ import numpy as np
 import os
 import cv2
 import torch
+
+from googlemock.test.gmock_output_test import NormalizeErrorMarker
 from reconstruct.loss_utils import get_rays, get_time
 from reconstruct.utils import ForceKeyErrorDict
 from reconstruct import get_detectors
@@ -78,9 +80,9 @@ class Frame:
             rgb_file = os.path.join(self.rgb_dir, "{:06d}".format(frame_id) + ".png")
         else:
             rgb_file = os.path.join(self.root_dir, frame_name)
-        # print(f"rgb_file = {rgb_file}")
         self.img_bgr = cv2.imread(rgb_file)
         self.img_rgb = cv2.cvtColor(self.img_bgr, cv2.COLOR_BGR2RGB)
+
         self.img_h, self.img_w, _ = self.img_rgb.shape
         self.instances = []
         #print("Frame Init -4")
@@ -276,14 +278,55 @@ class MonoSequence:
 
         return self.detections_in_current_frame
 
-    def get_frame_for_ros(self, frame_id, frame_name):
+    # def get_frame_for_ros(self, frame_id, frame_name):
+    #     print("[zhjd-debug] get_frame_for_ros")
+    #
+    #     show_cuda_memory("get_frame_for_ros head")
+    #
+    #     del self.current_frame
+    #     frame_id_default = 0
+    #     frame_name_default = frame_name
+    #     self.current_frame = Frame(self, frame_id = frame_id_default, frame_name = frame_name_default)
+    #
+    #     # print("Before get_detections")
+    #     self.current_frame.get_detections()
+    #
+    #     self.detections_in_current_frame = self.current_frame.instances
+    #
+    #     # del self.current_frame
+    #
+    #     show_cuda_memory("get_frame_for_ros end")
+    #     print("[zhjd-debug] get_frame_for_ros END")
+    #
+    #     return self.detections_in_current_frame
+    # def get_frame_for_ros(self, frame_id, img_rgb):
+    #     print("[zhjd-debug] get_frame_for_ros")
+    #
+    #     show_cuda_memory("get_frame_for_ros head")
+    #
+    #     del self.current_frame
+    #     frame_id_default = 0
+    #     self.current_frame = Frame(self, frame_id = frame_id_default, frame_name = None, img_rgb = img_rgb)
+    #
+    #     # print("Before get_detections")
+    #     self.current_frame.get_detections()
+    #
+    #     self.detections_in_current_frame = self.current_frame.instances
+    #
+    #     # del self.current_frame
+    #
+    #     show_cuda_memory("get_frame_for_ros end")
+    #     print("[zhjd-debug] get_frame_for_ros END")
+    #
+    #     return self.detections_in_current_frame
+    def get_frame_for_ros(self, frame_id):
         print("[zhjd-debug] get_frame_for_ros")
 
         show_cuda_memory("get_frame_for_ros head")
 
         del self.current_frame
         frame_id_default = 0
-        self.current_frame = Frame(self, frame_id = frame_id_default)
+        self.current_frame = Frame(self, frame_id = frame_id_default, frame_name = None)
 
         # print("Before get_detections")
         self.current_frame.get_detections()
@@ -292,7 +335,7 @@ class MonoSequence:
 
         # del self.current_frame
 
-        show_cuda_memory("get_frame_by_name end")
+        show_cuda_memory("get_frame_for_ros end")
         print("[zhjd-debug] get_frame_for_ros END")
 
         return self.detections_in_current_frame

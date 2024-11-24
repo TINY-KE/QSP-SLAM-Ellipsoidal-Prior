@@ -267,7 +267,8 @@ protected:
 //[整合]
 public:
     cv::Mat mGroundtruthPose_mat;  
-    
+    cv::Mat color_img;        // // zhjd： 彩色图像，用于传入pybind11中进行物体检测
+
 };
 
 } //namespace ORB_SLAM

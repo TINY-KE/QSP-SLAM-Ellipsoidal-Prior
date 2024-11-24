@@ -335,11 +335,11 @@ cv::Mat Tracking::GrabImageRGBD(const cv::Mat &imRGB,const cv::Mat &imD, const d
     {
         double depth_range = Config::ReadValue<double>("EllipsoidExtractor_DEPTH_RANGE");   // Only consider pointcloud within depth_range
 
-        if(!mCurrentFrame.rgb_img.empty()){    // RGB images are needed.
+        if(!mCurrentFrame.color_img.empty()){    // RGB images are needed.
             Eigen::VectorXd pose = mCurrentFrame.cam_pose_Twc.toVector();
             // cv::imshow("mCurrentFrame.rgb_img", mCurrentFrame.rgb_img);
             cv::waitKey(20);
-            mpBuilder->processFrame(mCurrentFrame.rgb_img, mCurrentFrame.frame_img, pose, depth_range);
+            mpBuilder->processFrame(mCurrentFrame.color_img, mCurrentFrame.frame_img, pose, depth_range);
             // cout << "338 " << endl;
             // printMemoryUsage();
             mpBuilder->voxelFilter(0.01);   // Down sample threshold; smaller the finer; depend on the hardware.

@@ -29,6 +29,7 @@ public:
     void GrabRGBD(const sensor_msgs::ImageConstPtr &rgb_msg,
                   const sensor_msgs::ImageConstPtr &depth_msg)
     {
+        ROS_INFO("RGB image encoding: %s", rgb_msg->encoding.c_str());
         cv_bridge::CvImageConstPtr cv_ptrRGB;
         try
         {
