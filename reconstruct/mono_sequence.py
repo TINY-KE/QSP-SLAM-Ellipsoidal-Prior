@@ -77,6 +77,7 @@ class Frame:
             print("[zhjd-debug]"+os.path.join(self.rgb_dir, "{:06d}".format(frame_id) + ".png"))
             rgb_file = os.path.join(self.rgb_dir, "{:06d}".format(frame_id) + ".png")
         else:
+            print("[zhjd-debug]"+os.path.join(self.root_dir, frame_name))
             rgb_file = os.path.join(self.root_dir, frame_name)
         # print(f"rgb_file = {rgb_file}")
         self.img_bgr = cv2.imread(rgb_file)

@@ -314,8 +314,13 @@ void Tracking::GetObjectDetectionsRGBD(KeyFrame *pKF)
     // Get a series of object detections
     bool use_for_ros = Config::Get<int>("use_for_ros");
     py::list detections;
-    if (use_for_ros)
-        detections= mpSystem->pySequence.attr("get_frame_for_ros")(pKF->mnFrameId, frame_name);
+    if (use_for_ros) {
+        string file_name = "ros.png";
+        string file_path = Config::Get<string>("Dataset.Path.Root");;
+        cv::imwrite(file_path+"/"+file_name, pKF->color_img);
+        detections= mpSystem->pySequence.attr("get_frame_by_name")(pKF->mnFrameId, file_name);
+
+    }
     else
         detections= mpSystem->pySequence.attr("get_frame_by_name")(pKF->mnFrameId, frame_name);
 
@@ -422,7 +427,7 @@ void Tracking::AssociateObjectsByProjection(ORB_SLAM2::KeyFrame *pKF)
             auto mapObjects = mpMap->GetAllMapObjects();
             for (auto pMO: mapObjects){
                 // FIXME：这里暂时对于 e 为 NULL 的情况跳过处理
-                cv::Mat img_show = mCurrentFrame.rgb_img.clone();
+                cv::Mat img_show = mCurrentFrame.color_img.clone();
                 auto e = pMO->GetEllipsold();
 
                 if (e==NULL){
@@ -1030,7 +1035,7 @@ void Tracking::UpdateDepthAndInferEllipsoidEstimation(ORB_SLAM2::Frame* pFrame, 
         if (show_ellipsold_process)
         {
             int x1 = (int)det_vec(1), y1 = (int)det_vec(2), x2 = (int)det_vec(3), y2 = (int)det_vec(4);
-            cv::Mat img_show = pFrame->rgb_img.clone();
+            cv::Mat img_show = pFrame->color_img.clone();
             cv::rectangle(img_show, cv::Point(x1, y1), cv::Point(x2, y2), cv::Scalar(255, 0, 0), 2);  // Scalar(255, 0, 0) is for blue color, 2 is the thickness
             cv::imshow("Image with Bbox", img_show);
             // cv::waitKey(0);
@@ -1266,7 +1271,7 @@ void Tracking::UpdateDepthEllipsoidEstimation(ORB_SLAM2::Frame* pFrame, KeyFrame
         if (show_ellipsold_process) 
         {
             int x1 = (int)det_vec(1), y1 = (int)det_vec(2), x2 = (int)det_vec(3), y2 = (int)det_vec(4);
-            cv::Mat img_show = pFrame->rgb_img.clone();
+            cv::Mat img_show = pFrame->color_img.clone();
             cv::rectangle(img_show, cv::Point(x1, y1), cv::Point(x2, y2), cv::Scalar(255, 0, 0), 2);  // Scalar(255, 0, 0) is for blue color, 2 is the thickness
             cv::imshow("Image with Bbox", img_show);
             // cv::waitKey(0);
@@ -1607,7 +1612,7 @@ void Tracking::ManageMemory()
         // std::cout << "Going to release image..." << std::endl;
         // getchar();
         pLastFrame->frame_img.release();
-        pLastFrame->rgb_img.release();
+        pLastFrame->color_img.release();
         // std::cout << "Released rgb and depth images." << std::endl;
     }
 }

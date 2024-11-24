@@ -131,7 +131,7 @@ Frame::Frame(const cv::Mat &imGray, const cv::Mat &imDepth, const double &timeSt
 {
     // timestamp = timestamp_;
     // todo: 这里的imGray世纪不是BGR格式
-    rgb_img = imRGB.clone();
+    color_img = imRGB.clone();
     frame_img = imDepth_raw.clone(); // 这里的imDepth已经不是原始格式了
 
     mbHaveLocalObject = false;

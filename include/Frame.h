@@ -222,7 +222,7 @@ public:
     int frame_seq_id;    // image topic sequence id, fixed
 
     cv::Mat frame_img;      // depth img for processing
-    cv::Mat rgb_img;        // rgb img for visualization.
+    cv::Mat color_img;        // rgb img for visualization.
     cv::Mat gray_img;       // gray! for texture
     cv::Mat ellipsoids_2d_img;
 
@@ -300,7 +300,6 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     cv::Mat mGroundtruthPose_mat;           // camera groundtruth
-
 };
 
 }// namespace ORB_SLAM

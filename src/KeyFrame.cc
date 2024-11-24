@@ -57,6 +57,9 @@ KeyFrame::KeyFrame(Frame &F, Map *pMap, KeyFrameDatabase *pKFDB):
     }
 
     SetPose(F.mTcw);
+
+    // zhjd： 彩色图像，用于传入pybind11中进行物体检测
+    color_img = F.color_img.clone();
 }
 
 void KeyFrame::ComputeBoW()
